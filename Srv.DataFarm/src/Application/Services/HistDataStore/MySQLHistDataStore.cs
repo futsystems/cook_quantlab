@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using TradingLib.API;
 using TradingLib.Common;
 using UniCryptoLab.Common.Data;
+using UniCryptoLab.Models;
 
 
 namespace UniCryptoLab.Services
@@ -50,7 +52,8 @@ namespace UniCryptoLab.Services
                 //maxcount 然后从数据序列末尾截取最大数量的数据
                 records = records.Take(Math.Max(0, records.Count() - startIndex)).Skip(Math.Max(0, (records.Count() - startIndex) - maxcount));//返回序列后段元素
             }
-            return records.ToList<IBarItem>();
+
+            return records.ToList().ToList<IBarItem>();
         }
         
 

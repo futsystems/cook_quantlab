@@ -69,7 +69,7 @@ namespace UniCryptoLab.Srv.Notify
             
             //添加业务事件记录服务
             //services.AddHostedService<BusinessEventSaverService>();
-            services.AddHostedService<BarSyncTaskWatcher>();
+            //services.AddHostedService<BarSyncTaskWatcher>();
         }
 
         // ConfigureContainer is where you can register things directly
