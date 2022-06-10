@@ -20,7 +20,7 @@ namespace UniCryptoLab.Services
         {
             this.Mapper = mapper;
         }
-        
+
         /// <summary>
         /// 查询Bar数据
         /// </summary>
@@ -32,15 +32,16 @@ namespace UniCryptoLab.Services
         /// <param name="startIndex"></param>
         /// <param name="maxcount"></param>
         /// <returns></returns>
-        public List<IBarItem> QueryBar(string symbol, BarInterval type, int interval, DateTime start, DateTime end, int startIndex, int maxcount)
+        public List<IBarItem> QueryBar(string symbol, BarInterval type, int interval, DateTime start, DateTime end,
+            int startIndex, int maxcount)
         {
-            
+
             var records = DBFactory.Default.Get<Entities.HistBarInfo>()
-                .Where(e=>e.Symbol == symbol)//合约匹配
-                .Where(e=>e.Interval == interval && e.IntervalType == type)//频率匹配
-                .Where(bar => bar.EndTime >= start && bar.EndTime <= end);//时间匹配
-        
-            
+                .Where(e => e.Symbol == symbol) //合约匹配
+                .Where(e => e.Interval == interval && e.IntervalType == type) //频率匹配
+                .Where(bar => bar.EndTime >= start && bar.EndTime <= end); //时间匹配
+
+
             if (maxcount <= 0)
             {
                 //不限制最大返回数量 
@@ -50,12 +51,13 @@ namespace UniCryptoLab.Services
             {
                 //startIndex 首先从数据序列开头截取对应数量的数据
                 //maxcount 然后从数据序列末尾截取最大数量的数据
-                records = records.Take(Math.Max(0, records.Count() - startIndex)).Skip(Math.Max(0, (records.Count() - startIndex) - maxcount));//返回序列后段元素
+                records = records.Take(Math.Max(0, records.Count() - startIndex))
+                    .Skip(Math.Max(0, (records.Count() - startIndex) - maxcount)); //返回序列后段元素
             }
 
-            return records.ToList().ToList<IBarItem>();
+            return records.OrderBy(e => e.EndTime).ToList<BarItem>().ToList<IBarItem>();
         }
-        
+
 
         /// <summary>
         /// 更新某个Bar

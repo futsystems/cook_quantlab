@@ -7,7 +7,7 @@ using UniCryptoLab.Common.Data;
 using TradingLib.API;
 using TradingLib.Common;
 using UniCryptoLab.Common;
-using UniCryptoLab.Grpc.API;
+using UniCryptoLab.Models;
 
 
 namespace UniCryptoLab.Services
@@ -21,16 +21,22 @@ namespace UniCryptoLab.Services
         Entities.HistBarSyncTaskInfo GetTask(string exchange, string symbol, BarInterval type, int interval);
         
 
-        List<Entities.HistBarSyncTaskInfo> GetUnCompletedTask();
+        List<Entities.HistBarSyncTaskInfo> GetPendingTask();
 
         void UpdateSyncedtime(Entities.HistBarSyncTaskInfo task, DateTime syncedTime);
 
+        void ProcessTask(Entities.HistBarSyncTaskInfo task);
+        
         void CompleteTask(Entities.HistBarSyncTaskInfo task);
 
+        void CancelTask(Entities.HistBarSyncTaskInfo task,string reason);
+
+        void TerminateTask(Entities.HistBarSyncTaskInfo task,string reason);
+        
         Entities.HistBarSyncTaskInfo GetTaskById(string id);
     }
-    
-    public class HistBarSyncTaskService:IHistBarSyncTaskService
+
+    public class HistBarSyncTaskService : IHistBarSyncTaskService
     {
         private NLog.ILogger _logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -39,15 +45,17 @@ namespace UniCryptoLab.Services
             return DBFactory.Default.Get<Entities.HistBarSyncTaskInfo>().Where(e => e.Id == id).FirstOrDefault();
         }
 
-        public List<Entities.HistBarSyncTaskInfo> GetUnCompletedTask()
+        public List<Entities.HistBarSyncTaskInfo> GetPendingTask()
         {
-            return DBFactory.Default.Get<Entities.HistBarSyncTaskInfo>().Where(e => e.Completed == false).ToList();
+            return DBFactory.Default.Get<Entities.HistBarSyncTaskInfo>()
+                .Where(e => e.Status == EnumBarSyncTaskStatus.Pending || e.Status == EnumBarSyncTaskStatus.Processing).ToList();
         }
-        
-        public Entities.HistBarSyncTaskInfo AddTask(string exchange,string symbol, BarInterval type, int interval, DateTime start,
+
+        public Entities.HistBarSyncTaskInfo AddTask(string exchange, string symbol, BarInterval type, int interval,
+            DateTime start,
             DateTime end)
         {
-            var task = GetTask(exchange,symbol, type, interval);
+            var task = GetTask(exchange, symbol, type, interval);
             if (task == null)
             {
                 task = new Entities.HistBarSyncTaskInfo()
@@ -60,7 +68,7 @@ namespace UniCryptoLab.Services
                     StartTime = start,
                     EndTime = end,
                     SyncedTime = start,
-                    Completed = false,
+                    Status = EnumBarSyncTaskStatus.Pending,
                     CreateTime = DateTime.UtcNow,
                     UpdateTime = DateTime.UtcNow,
                 };
@@ -68,19 +76,30 @@ namespace UniCryptoLab.Services
             }
             else
             {
+
+                if (task.Status == EnumBarSyncTaskStatus.Pending || task.Status == EnumBarSyncTaskStatus.Processing)
+                {
+                    throw new UniCryptoLabException("task is under processing");
+                }
+                
                 task.StartTime = start;
                 task.EndTime = end;
                 task.SyncedTime = start;
-                task.Completed = false;
+                task.Status = EnumBarSyncTaskStatus.Pending;
+                task.Reason = null;
                 task.UpdateTime = DateTime.UtcNow;
+                DBFactory.Default.Update(task);
             }
+
             return task;
         }
 
-        public Entities.HistBarSyncTaskInfo GetTask(string exchange,string symbol, BarInterval type, int interval)
+
+
+        public Entities.HistBarSyncTaskInfo GetTask(string exchange, string symbol, BarInterval type, int interval)
         {
             return DBFactory.Default.Get<Entities.HistBarSyncTaskInfo>()
-                .Where(e => e.Exchange==exchange && e.Symbol == symbol)
+                .Where(e => e.Exchange == exchange && e.Symbol == symbol)
                 .Where(e => e.IntervalType == type && e.Interval == interval)
                 .FirstOrDefault();
         }
@@ -94,11 +113,35 @@ namespace UniCryptoLab.Services
 
         public void CompleteTask(Entities.HistBarSyncTaskInfo task)
         {
-            DBFactory.Default.Set<Entities.HistBarSyncTaskInfo>().Set(e => e.Completed,true
-                )
+            DBFactory.Default.Set<Entities.HistBarSyncTaskInfo>().Set(e => e.Status, EnumBarSyncTaskStatus.Completed)
                 .Where(e => e.Id == task.Id).Execute();
         }
 
- 
+
+        public void CancelTask(Entities.HistBarSyncTaskInfo task, string reason)
+        {
+            DBFactory.Default.Set<Entities.HistBarSyncTaskInfo>()
+                .Set(e => e.Status, EnumBarSyncTaskStatus.Canceled)
+                .Set(e => e.Reason, reason)
+                .Where(e => e.Id == task.Id).Execute();
+        }
+        
+        public void ProcessTask(Entities.HistBarSyncTaskInfo task)
+        {
+            DBFactory.Default.Set<Entities.HistBarSyncTaskInfo>()
+                .Set(e => e.Status, EnumBarSyncTaskStatus.Processing)
+                .Where(e => e.Id == task.Id).Execute();
+        }
+
+        
+        public void TerminateTask(Entities.HistBarSyncTaskInfo task, string reason)
+        {
+            DBFactory.Default.Set<Entities.HistBarSyncTaskInfo>()
+                .Set(e => e.Status, EnumBarSyncTaskStatus.Terminated)
+                .Set(e => e.Reason, reason)
+                .Where(e => e.Id == task.Id).Execute();
+        }
+
+
     }
 }

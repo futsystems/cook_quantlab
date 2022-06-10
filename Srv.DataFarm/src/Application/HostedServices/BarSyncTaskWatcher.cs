@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using TradingLib.API;
 using TradingLib.Common;
+using UniCryptoLab.Entities;
+using UniCryptoLab.Events;
 using UniCryptoLab.Grpc.API;
+using UniCryptoLab.Models;
 
 
 namespace UniCryptoLab.Services
@@ -16,10 +20,15 @@ namespace UniCryptoLab.Services
 
         private IHistDataStore HistDataStore { get; set; }
 
-        public BarSyncTaskWatcher( IHistBarSyncTaskService taskService, IHistDataStore dataStore)
+        public BarSyncTaskWatcher( IHistBarSyncTaskService taskService, IHistDataStore dataStore, IDomainEventSubscriber domainEventSubscriber)
         {
             this.TaskService = taskService;
             this.HistDataStore = dataStore;
+            
+            domainEventSubscriber.Subscribe<ReqBarSyncTaskCancelEvent>(async evt =>
+            {
+                taskToCancel.TryAdd(evt.Task.Id, evt);
+            });
         }
 
        
@@ -30,11 +39,14 @@ namespace UniCryptoLab.Services
                 CreateLoopTask(ProcessUnCompletedTask)
             };
         }
-        
+
+
+        private ConcurrentDictionary<string, ReqBarSyncTaskCancelEvent> taskToCancel =
+            new ConcurrentDictionary<string, ReqBarSyncTaskCancelEvent>();
 
         async Task ProcessUnCompletedTask()
         {
-            var tasks = this.TaskService.GetUnCompletedTask();
+            var tasks = this.TaskService.GetPendingTask();
             if (tasks.Count == 0)
             {
                 await Task.Delay(TimeSpan.FromSeconds(5), Cancellation);
@@ -51,8 +63,15 @@ namespace UniCryptoLab.Services
                     
                     var info = SymbolInfo.ParseSymbol(task.Symbol);
                     info.Exchange = task.Exchange;
-                    
-                    while (task.SyncedTime < task.EndTime && task.Completed == false)
+
+                    if (task.Status == EnumBarSyncTaskStatus.Pending)
+                    {
+                        task.Status = EnumBarSyncTaskStatus.Processing;
+                        this.TaskService.ProcessTask(task);
+                    }
+
+                    //任务处于Pending 或者 Processing 状态 则执行处理
+                    while (task.SyncedTime < task.EndTime && task.Status == EnumBarSyncTaskStatus.Processing)
                     {
                         try
                         {
@@ -63,12 +82,10 @@ namespace UniCryptoLab.Services
                             {
                                 this.HistDataStore.AddBar(bar);
                             }
-
                             if (result.Count > 0)
                             {
                                 task.SyncedTime = result.Last().EndTime;
                                 this.TaskService.UpdateSyncedtime(task,task.SyncedTime);
-                                
                             }
                             else
                             {
@@ -80,14 +97,25 @@ namespace UniCryptoLab.Services
                             //如果已经越过了设定的结束时间则设置为任务完成
                             if (task.SyncedTime >= task.EndTime)
                             {
-                                task.Completed = true;
+                                task.Status = EnumBarSyncTaskStatus.Completed;
                                 this.TaskService.CompleteTask(task);
+                                
+                            }
+
+                            if (taskToCancel.TryRemove(task.Id,out var evt))
+                            {
+                                task.Status = EnumBarSyncTaskStatus.Canceled;
+                                this.TaskService.CancelTask(task, evt.Reason);
+                                
                             }
                         }
                         catch (Exception e)
                         {
+                            this.TaskService.TerminateTask(task,e.Message);
                             logger.Error("restore bar data error", e);
                         }
+                        
+                        
                 
                     }
                 }

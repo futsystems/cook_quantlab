@@ -383,22 +383,40 @@ namespace UniCryptoLab.Entities
         DateTime _SyncedTime;
 
         /// <summary>
-        /// 是否完成
+        /// 终止原因
         /// </summary>
         [Column]        
-        public bool Completed 
+        public string Reason 
         { 
             get
             {
-                return _Completed;
+                return _Reason;
             }
             set
             {
-                _Completed = value;
-                MarkColumnModified("Completed");
+                _Reason = value;
+                MarkColumnModified("Reason");
             }
         }
-        bool _Completed;
+        string _Reason;
+
+        /// <summary>
+        /// 任务状态
+        /// </summary>
+        [Column]        
+        public  UniCryptoLab.Models.EnumBarSyncTaskStatus Status 
+        { 
+            get
+            {
+                return _Status;
+            }
+            set
+            {
+                _Status = value;
+                MarkColumnModified("Status");
+            }
+        }
+         UniCryptoLab.Models.EnumBarSyncTaskStatus _Status;
 
         /// <summary>
         /// 创建时间

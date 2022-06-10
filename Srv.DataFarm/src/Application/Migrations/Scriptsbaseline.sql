@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS `HistBar`  (
   `Id` bigint(20) unsigned   NOT NULL,
   `EndTime` datetime   NOT NULL COMMENT 'Bar结束时间',
-  `Symbol` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '频率',
+  `Symbol` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '频率',
   `Interval` int(11)   NOT NULL COMMENT '周期数',
   `IntervalType` int(11)   NOT NULL COMMENT '周期类别',
   `Open` double   NOT NULL COMMENT '开盘价',
@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS `HistBarSyncTask`  (
   `StartTime` datetime   NOT NULL COMMENT '开始时间',
   `EndTime` datetime   NOT NULL COMMENT '结束时间',
   `SyncedTime` datetime   NOT NULL COMMENT '同步时间',
-  `Completed` tinyint(1)   NOT NULL COMMENT '是否完成',
+  `Reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '终止原因',
+  `Status` int(4)   NOT NULL COMMENT '任务状态',
   `CreateTime` datetime   NOT NULL COMMENT '创建时间',
   `UpdateTime` datetime   NOT NULL COMMENT '更新时间',
 PRIMARY KEY (`Id`) USING BTREE

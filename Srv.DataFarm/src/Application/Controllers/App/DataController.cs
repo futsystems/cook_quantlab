@@ -13,6 +13,7 @@ using UniCryptoLab.Web.Framework;
 using UniCryptoLab.Models;
 using UniCryptoLab.Services;
 using TradingLib.Common;
+using UniCryptoLab.Events;
 
 namespace UniCryptoLab.Srv.Portal.API.App
 {
@@ -27,11 +28,16 @@ namespace UniCryptoLab.Srv.Portal.API.App
 
         private IHistDataStore DataStore { get; set; }
 
-        public DataController(IMapper mapper, IHistBarSyncTaskService taskService, IHistDataStore store)
+        private IDomainEventPublisher DomainEventPublisher { get; set; }
+
+        public DataController(IMapper mapper, IHistBarSyncTaskService taskService,
+            IHistDataStore store,
+            IDomainEventPublisher publisher)
         {
             this.Mapper = mapper;
             this.TaskService = taskService;
             this.DataStore = store;
+            this.DomainEventPublisher = publisher;
         }
         
         /// <summary>
@@ -47,6 +53,20 @@ namespace UniCryptoLab.Srv.Portal.API.App
         }
         
         /// <summary>
+        /// 取消任务
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ActionName("bar/task/cancel")]
+        public IActionResult CancelTask(ReqById req)
+        {
+            var task = this.TaskService.GetTaskById(req.Id);
+            this.DomainEventPublisher.Publish(new ReqBarSyncTaskCancelEvent(task,"manual cancel"));
+            return Json(SuccessResult("request is submitted"));
+        }
+        
+        /// <summary>
         /// 查看某个任务的详情
         /// </summary>
         /// <param name="req"></param>
@@ -58,6 +78,9 @@ namespace UniCryptoLab.Srv.Portal.API.App
             var task = this.TaskService.GetTaskById(req.Id);
             return Json(SuccessResult(this.Mapper.Map<SyncBarTaskModel>(task)));
         }
+        
+
+        
         
         /// <summary>
         /// 

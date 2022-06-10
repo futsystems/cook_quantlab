@@ -26,10 +26,10 @@
 
 	    {"HistBarInfo.IntervalType", " TradingLib.API.BarInterval"},
 	    {"HistBarSyncTaskInfo.IntervalType", " TradingLib.API.BarInterval"},
+	    {"HistBarSyncTaskInfo.Status", " UniCryptoLab.Models.EnumBarSyncTaskStatus"}
 	    
     };
 
-    
     
     
     
