@@ -15,16 +15,16 @@ namespace UniCryptoLab.Models
         /// <summary>
         /// 已完成
         /// </summary>
-        Completed=2,
+        Completed=3,
         
         /// <summary>
         /// 已终止
         /// </summary>
-        Terminated = 3,
+        Terminated = 4,
         
         /// <summary>
         /// 已取消
         /// </summary>
-        Canceled = 4,
+        Canceled = 5,
     }
 }
