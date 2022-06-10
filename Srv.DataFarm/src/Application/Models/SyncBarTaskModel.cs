@@ -13,7 +13,9 @@ namespace UniCryptoLab.Models
 
         public DateTime EndTime { get; set; }
 
-        public bool Completed { get; set; }
+        public EnumBarSyncTaskStatus Status { get; set; }
+
+        public string Reason { get; set; }
 
         public DateTime SyncedTime { get; set; }
     }
