@@ -59,7 +59,7 @@ namespace UniCryptoLab.Services
             var symbol =  $"{info.Base}{info.Quote}";
             var barSymbol =  $"{info.Exchange}-{info.Symbol}";
             var span = TimeSpan.FromMinutes(1);
-            var result = await client.SpotApi.ExchangeData.GetKlinesAsync(symbol, KlineInterval.OneMinute, start, end, 1000);
+            var result = await client.SpotApi.ExchangeData.GetKlinesAsync(symbol, KlineInterval.OneMinute, start, end, 10);
             if (result.Success)
             {
                 var items = result.Data.Select(e => ConvertToLocalBar(barSymbol, e, span)).ToList();
@@ -74,7 +74,7 @@ namespace UniCryptoLab.Services
 
         IBarItem ConvertToLocalBar(string symbol,IBinanceKline bar, TimeSpan span)
         {
-            return new BarItem()
+            var item= new BarItem()
             {
                 EndTime = TimeFrequency.BarEndTime(bar.OpenTime, span),
                 Symbol = symbol,
@@ -87,6 +87,8 @@ namespace UniCryptoLab.Services
                 Volume = (double)bar.Volume,
                 TradeCount = bar.TradeCount,
             };
+
+            return item;
         }
     }
 }

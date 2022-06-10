@@ -67,14 +67,20 @@ namespace UniCryptoLab.Services
                             if (result.Count > 0)
                             {
                                 task.SyncedTime = result.Last().EndTime;
-                                this.TaskService.UpdateSyncedtime(task,task.EndTime);
+                                this.TaskService.UpdateSyncedtime(task,task.SyncedTime);
+                                
                             }
                             else
                             {
                                 //如果查询不到任何数据则 同步时间更新为结束时间 查询今天到后天的数据，则明天和后天的数据还没有产生
                                 task.SyncedTime = task.EndTime;
-                                task.Completed = true;
                                 this.TaskService.UpdateSyncedtime(task,task.EndTime);
+                            }
+                            
+                            //如果已经越过了设定的结束时间则设置为任务完成
+                            if (task.SyncedTime >= task.EndTime)
+                            {
+                                task.Completed = true;
                                 this.TaskService.CompleteTask(task);
                             }
                         }
