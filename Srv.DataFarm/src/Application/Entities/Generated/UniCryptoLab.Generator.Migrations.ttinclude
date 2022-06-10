@@ -1,0 +1,336 @@
+<#@ template language="C#" hostspecific="True" #>
+<#@ output extension=".cs" #>
+<#@ assembly name="System.Core.dll" #>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="$(SolutionDir)/libs/MySql.Data.dll" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="System.Configuration" #>
+<#@ assembly name="System.Windows.Forms" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Data.SqlClient" #>
+<#@ import namespace="System.Data.Common" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.Globalization" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Configuration" #>
+<#@ import namespace="System.Windows.Forms" #>
+
+<#
+    //解决方案目录
+    string solutionsPath = Host.ResolveAssemblyReference("$(SolutionDir)");
+    //项目目录
+    string projectPath = Host.ResolveAssemblyReference("$(ProjectDir)");
+    
+    
+    string migrationsPath = Path.Combine(projectPath,"Migrations");   //Migrations文件夹路径
+    string scriptsPath = Path.Combine(migrationsPath,"Scripts");          //Scripts路径
+
+
+    //是否初始化 baseline.sql 文件
+    bool initBaselineSql = true;
+
+    //是否初始化 DBVersionInfo.cs 文件
+    bool initDBVersionInfo = true;
+
+    //是否初始化 初始化Migration 文件
+    bool initMigration_Init = true;
+
+    //是否初始化Readme.txt 文件
+    bool initReadme = true;
+
+
+    if (Directory.Exists(migrationsPath))
+    {
+        if (Directory.Exists(scriptsPath))
+        {
+            var baselineFile = Path.Combine(scriptsPath, "baseline.sql");
+                initBaselineSql = !File.Exists(baselineFile);
+        }
+        else
+        {
+            Directory.CreateDirectory(scriptsPath);
+        }
+
+        initDBVersionInfo = !File.Exists(Path.Combine(migrationsPath,"DBVersionInfo.cs"));
+        initMigration_Init = System.IO.Directory.GetFiles(migrationsPath, "Migration_*_Init.cs").Length == 0;
+        initReadme = !System.IO.File.Exists(Path.Combine(migrationsPath,"Readme.txt"));
+    }
+    else
+    {
+        Directory.CreateDirectory(migrationsPath);
+        Directory.CreateDirectory(scriptsPath);
+    }
+    
+    //生成 baseline.sql 文件
+    if(initBaselineSql)
+    {
+        //字符排序规则
+        //utf8mb4_general_ci：ci即case insensitive，不区分大小写。没有实现Unicode排序规则，在遇到某些特殊语言或者字符集，排序结果可能不一致。但是，在绝大多数情况下，这些特殊字符的顺序并不需要那么精确。
+        //utf8mb4_bin：将字符串每个字符用二进制数据编译存储，区分大小写，而且可以存二进制的内容
+
+        //string collate = "utf8mb4_general_ci";
+        //string collate = "utf8mb4_bin";
+        string collateType = "utf8mb4_unicode_ci";
+
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        //循环表
+        foreach(Table tbl in from t in tables where !t.Ignore select t)
+        {
+            string PKColumnName = "";
+
+            sb.Append($"\r\nCREATE TABLE IF NOT EXISTS `{tbl.Name}`  (\r\n");
+            //循环列
+            foreach(Column col in from c in tbl.Columns where !c.Ignore select c)
+            {
+                if(col.IsPK)
+                {
+                    if(!string.IsNullOrEmpty(PKColumnName))
+                    {
+                        PKColumnName+=",";
+                    }
+                    PKColumnName+= $"`{col.Name}`";
+                }
+                
+                string character = "";
+                string defaultStr="";
+                string collate="";
+                if(col.PropertyType == "string" )
+                {
+                    defaultStr = "DEFAULT "+(string.IsNullOrEmpty(col.DBDefault)?"NULL":col.DBDefault);
+                    if(col.DBType != "json")
+                    {
+                        character = "CHARACTER SET utf8mb4";
+                        collate = "COLLATE " + collateType;
+                    }
+                }
+                else if(col.DBDefault != null)
+                {
+                    defaultStr =  "DEFAULT "+col.DBDefault ;
+                }
+
+                //生成列语句
+                sb.Append($"  `{col.Name}` {col.DBType} {character} {collate} {(col.IsNullable ? "NULL" : "NOT NULL")}{(string.IsNullOrEmpty(col.Remark) ? "" : " COMMENT '" + col.Remark + "'")},");
+                sb.Append("\r\n");
+            }
+
+            if(!string.IsNullOrEmpty(PKColumnName))
+            {
+                //生成主键
+                sb.Append($"PRIMARY KEY ({PKColumnName}) USING BTREE");
+            }
+            else
+            {
+                //去除末尾的 ","
+                sb = new System.Text.StringBuilder(sb.ToString().TrimEnd('\n').TrimEnd('\r').TrimEnd(','));
+            }
+
+            sb.Append($"\r\n) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = {collateType} ROW_FORMAT = Dynamic;");
+            sb.Append("\r\n");
+        }
+
+        System.IO.File.WriteAllText(scriptsPath + "baseline.sql", sb.ToString());
+    }
+
+
+
+
+
+
+
+
+    // 生成 DBVersionInfo.cs 文件
+   if (initDBVersionInfo)
+   {
+       string ServiceName = "Notify";
+
+        try
+        {
+            var index1 = projectPath.IndexOf("srv.") + "srv.".Length;
+            var index2 = projectPath.IndexOf(@"\src");
+            ServiceName = projectPath.Substring(index1, index2 - index1);
+
+            //首字母大写
+            ServiceName = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(ServiceName);
+        }catch{ }
+
+        string dbVersionInfoContext = string.Format(@"using FluentMigrator.Runner.VersionTableInfo;
+
+namespace UniCryptoLab.Srv.{0}
+{{
+    [VersionTableMetaData]
+    public class DBVersionTable : IVersionTableMetaData
+    {{
+        public object ApplicationContext {{ get; set; }}
+
+        public bool OwnsSchema {{ get {{ return false; }} }}
+        
+        public string ColumnName
+        {{
+            get {{ return ""Version""; }}
+        }}
+
+        public string SchemaName
+        {{
+            get {{ return """"; }}
+        }}
+
+        public string TableName
+        {{
+            get {{ return $""_DBVersionSrv{{Program.AppName}}""; }}
+        }}
+
+        public string UniqueIndexName
+        {{
+            get {{ return ""UC_Version""; }}
+        }}
+
+        public virtual string AppliedOnColumnName
+        {{
+            get {{ return ""AppliedOn""; }}
+        }}
+
+        public virtual string DescriptionColumnName
+        {{
+            get {{ return ""Description""; }}
+        }}
+    }}
+}}",ServiceName);
+    System.IO.File.WriteAllText(Path.Combine(migrationsPath, "DBVersionInfo.cs"), dbVersionInfoContext);
+}
+
+
+
+
+
+// 生成 Migration_Init 文件
+if(initMigration_Init)
+{
+    string nowTimeStr = DateTime.Now.ToString("yyyyMMddHHmm00");
+    string migration_InitFileName = $"Migration_{nowTimeStr}_Init.cs";
+
+    string ServiceName = "ServiceName";
+
+    try
+    {
+        var index1 = projectPath.IndexOf("srv.") + "srv.".Length;
+        var index2 = projectPath.IndexOf(@"\src");
+        ServiceName = projectPath.Substring(index1, index2 - index1);
+
+        //首字母大写
+        ServiceName = System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(ServiceName);
+    }catch{ }
+
+    string readmeContext = string.Format(@"using System;
+using FluentMigrator;
+
+namespace UniCryptoLab.Srv.{1}.Migrations
+{{
+    //具体使用和参考
+    //https://blog.osmosys.asia/2018/06/15/fluentmigrator-database-migration/
+    //https://crosscuttingconcerns.com/How-I-use-Fluent-Migrator
+    //https://www.cnblogs.com/lwqlun/p/10649949.html
+
+    /// <summary>
+    /// 初始化表结构
+    /// </summary>
+    [Tags(""platform"")]
+    [Migration({0}, ""Init DB Schema({1})"")]
+    public class Migration_{0} : Migration
+    {{
+        public override void Up()
+        {{
+            this.Execute.EmbeddedScript(""UniCryptoLab.Srv.{1}.Migrations.Scripts.baseline.sql"");
+        }}
+
+        public override void Down()
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}
+", nowTimeStr, ServiceName);
+    System.IO.File.WriteAllText(Path.Combine(migrationsPath, migration_InitFileName), readmeContext);
+}
+
+
+
+
+
+
+// 生成 Readme.txt 文件
+if(initReadme)
+{
+                    string readmeContext = string.Format(@"PaymentOrder:支付订单
+PaymentBizOrder：业务订单
+PaymentOrderStage：支付阶段
+Payment:支付
+PaymentTransaction：支付交易
+PaymentRefund:退款
+PaymentRefundTransaction：退款交易
+PaymentCODTxn：货到付款交易
+PaymentAccount：支付模块收款账户
+PaymentAccountTxn：支付模块收款账户流水
+
+
+
+1.本地编写Migration并运行
+2.运行程序后更新数据库
+3.运行T4模版生成数据对象
+4.继续业务处理
+
+    ///// <summary>
+    ///// 自动回退Migration
+    ///// https://fluentmigrator.github.io/articles/migration/migration-auto-reversing.html
+    ///// </summary>
+    //[Migration(20201212105802)]
+    //public class Migration_20201212105802 : AutoReversingMigration
+    //{{
+    //    public override void Up()
+    //    {{
+    //        //Create.Table(""Log"")
+    //        //    .WithColumn(""Id"").AsInt64().PrimaryKey().Identity()
+    //        //    .WithColumn(""Text"").AsString();
+    //    }}
+    //}}
+
+
+    //[Migration(20201212105801)]
+    //public class Migration_20201212105801 : Migration
+    //{{
+    //    public override void Up()
+    //    {{
+    //        //添加字段
+    //        Alter.Table(""Log"")
+    //            //.InSchema("""")
+    //            .AddColumn(""Field1"")
+    //            .AsString(40)
+    //            .NotNullable()
+    //            .WithDefaultValue(""default value"")
+    //            .WithColumnDescription(""测试Field1"");
+
+    //        //重命名
+    //        //Rename.Table(""Users"").To(""UsersNew"");
+    //        //Rename.Column(""LastName"").OnTable(""Users"").To(""Surname"");
+
+    //        //删除
+    //        //Delete.Table(""Users"");
+    //        //Delete.Column(""Field1"");
+
+    //    }}
+
+    //    public override void Down()
+    //    {{
+    //        //删除字段
+    //        Delete.Column(""Field1"").FromTable(""Log"");
+    //    }}
+    //}}");
+    System.IO.File.WriteAllText(Path.Combine(migrationsPath,"Readme.txt"), readmeContext);
+}
+
+
+
+#>

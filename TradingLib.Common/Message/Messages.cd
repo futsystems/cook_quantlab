@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="TradingLib.Common.ErrorNotifyResponsePacket" Collapsed="true">
+    <Position X="2" Y="5" Width="2.5" />
+    <InheritanceLine Type="TradingLib.Common.NotifyResponsePacket" FixedFromPoint="true">
+      <Path>
+        <Point X="3.25" Y="4.147" />
+        <Point X="3.25" Y="5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAEQAAAAAAAAgAAAAAgAAAAAAAAAAAEAAAAAAAAgAA=</HashCode>
+      <FileName>Messages\PacketBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingLib.Common.NotifyResponsePacket" Collapsed="true">
+    <Position X="2.75" Y="3.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Messages\PacketBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingLib.Common.RspResponsePacket" Collapsed="true">
+    <Position X="5.5" Y="3.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAAgAAAgAAAgAAAAQAAAAEAAAAAAAAgAA=</HashCode>
+      <FileName>Messages\PacketBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingLib.Common.RequestPacket" Collapsed="true">
+    <Position X="1" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAA=</HashCode>
+      <FileName>Messages\PacketBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingLib.Common.ResponsePacket" Collapsed="true">
+    <Position X="4.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAEA=</HashCode>
+      <FileName>Messages\PacketBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingLib.Common.PacketBase" Collapsed="true">
+    <Position X="3.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAgIAAgQEgAgAAQAAACBAABAEAQAAAAAAAAA=</HashCode>
+      <FileName>Messages\PacketBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingLib.Common.CopyOfPacketBase">
+    <Position X="0.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAgIAAgQEgAgAAQAAACBAABAEAQAAAAAAAAA=</HashCode>
+      <FileName>Messages\PacketBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Orientation="Left" Position="0.1" />
+  </Class>
+  <Struct Name="TradingLib.Common.Message">
+    <Position X="5.75" Y="6.25" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAQgBgCAAIEAAACAAAAAAAAgAAAQAIAAAAAoA=</HashCode>
+      <FileName>Messages\Message.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Enum Name="TradingLib.API.MessageTypes" Collapsed="true">
+    <Position X="3" Y="6.25" Width="2.5" />
+    <TypeIdentifier />
+  </Enum>
+  <Font Name="宋体" Size="9" />
+</ClassDiagram>

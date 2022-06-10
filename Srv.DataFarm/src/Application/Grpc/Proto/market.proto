@@ -1,0 +1,498 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "UniCryptoLab.Grpc.API";
+
+package MarketApi;
+
+service Market {
+   rpc CalcPreOrder(CalcPreOrderRequest) returns (CalcPreOrderResponse) {}
+   rpc CalcOrder(CalcOrderRequest) returns (CalcOrderResponse) {}
+   rpc CalcCart(CalcCartRequest) returns (CalcCartResponse) {}
+   rpc CalcPromotionPrice(CalcPromotionPriceRequest) returns (CalcPromotionPriceResponse) {}
+
+   rpc GetNormalPromotionInfo(GetNormalPromotionInfoRequest) returns (GetNormalPromotionInfoResponse) {}
+   rpc GetProductPromotionTags(GetProductPromotionTagsRequest) returns (GetProductPromotionTagsResponse) {}
+   rpc GetProductActivitiyInfo(GetProductActivityInfoRequest) returns (GetProductActivityInfoResponse) {}
+
+
+   rpc GetMemberCouponStatistic(GetMemberCouponStatisticRequest) returns (GetMemberCouponStatisticResponse) {}
+   rpc CheckTakeOverAction(CheckTakeOverActionRequest) returns (CheckTakeOverActionResponse) {}
+
+   rpc PageQuerySpecialPromotionProducts(PageQuerySpecialPromotionProductsRequest) returns (PageQuerySpecialPromotionProductsResponse) {}
+
+   rpc IssueCoupon(IssueCouponRequest) returns (IssueCouponResponse) {}
+}
+
+message CalcPreOrderRequest{
+    STMarketMember Member=1;
+    repeated STMarketOrderItem OrderItems=2;
+    STPromotionActivityArgs PromotionArgs=3;
+}
+
+message CalcPreOrderResponse{
+     int32 Code=1;
+    string Msg = 2;
+    STPreOrderResult Data=3;
+}
+
+message CalcCartRequest{
+    STMarketMember Member=1;
+    repeated STMarketOrderItem OrderItems=2;
+}
+
+
+message CalcCartResponse{
+     int32 Code=1;
+    string Msg = 2;
+    STCartResult Data=3;
+}
+
+message CalcOrderRequest{
+    STMarketMember Member=1;
+    string OrderId=2;
+    repeated STMarketOrderItem OrderItems=3;
+    STPromotionActivityArgs PromotionArgs=4;
+    STCouponActivityArgs CouponArgs=5;
+}
+
+message CalcOrderResponse{
+     int32 Code=1;
+    string Msg = 2;
+    STOrderResult Data=3;
+}
+
+message GetProductPromotionTagsRequest{
+    string PartionId=1;
+    string ProductId=2;
+    string SpecialActivityName=3;
+}
+
+message GetProductPromotionTagsResponse{
+    int32 Code=1;
+    string Msg = 2;
+    repeated STPromotionTag Data=3;
+}
+
+message STCartResult{
+    repeated STCartGroup Groups=1;
+}
+
+message STCartGroup{
+    STCartActivityInfo ActivityInfo=1;
+    repeated string  CarItemIds=2;
+}
+
+message STCartActivityInfo{
+        string Id=1;
+        string Name=2;
+        string ActivityType=3;
+        string ActivityTypeName=4;
+        string TitleActivity=5;
+        string TitleProfit=6;
+        string TitleCondition=7;
+        uint64 BeginTime=8;
+        uint64 EndTime=9;
+        repeated string ActivityTags=10;
+        string ActivityPrompt=11;
+        bool HasProfit=12;
+        float Amount=13;
+}
+
+
+message STPromotionActivityArgs{
+    string PromotionId=1;
+    string PromotionArgs=2;
+}
+
+message STCouponActivityArgs{
+    string CouponEntityId=1;
+}
+
+message STMarketMember{
+    string PartionId=1;
+    string Id=2;
+    string UserName=3;
+    string NickName=4;
+    string AvatarUrl=5;
+    bool IsPremium=6;
+    repeated  STMarketRightItem RightItems=7;
+    int32 Level=8;
+}
+
+message STMarketProductSku{
+    string PartionId=1;
+    string ProductId=2;
+    string ProductTitle=3;
+    string ProductImageUrl=4;
+    string SkuId=5;
+    float SalePrice=6;
+    string AttributeMatrixValue=7;
+    float MemberPrice=8;
+    bool ProductMemberDiscount=9;
+}
+
+message STMarketOrderItem{
+    int32 Quantity=1;
+    STMarketProductSku Sku=2;
+    float OrderPrice=3;
+    string PromotionId=4;
+    string PromotionArgs=5;
+    string CartItemId=6;
+}
+
+message STPromotionInfo{
+    string Id=1;
+    string Name=2;
+    string ActivityType=3;
+    string ActivityTypeName=4;
+    string TitleActivity=5;
+    string TitleProfit=6;
+    string TitleCondition=7;
+    uint64 BeginTime=8;
+    uint64 EndTime=9;
+    uint64 CurrentTime=10;
+    string Info=11;
+    bool IsSpecial=12;
+    bool CanParticipate=13;
+    float Amount=14;
+    float PriceAdjustment=15;
+    float ExpressFeeAdjustment=16;
+}
+
+message STPromotionResult{
+    STRuleResult RuleResult=1;
+    bool IsError=2;
+    string Message=3;
+    STPromotionInfo PromotionInfo= 4;
+    repeated STTakeOverOrderAction TaskOverOrderActions=5;
+}
+
+message STCouponResult{
+    STRuleResult RuleResult=1;
+    bool IsError=2;
+    string Message=3;
+    STCouponEntity CouponEntity=4;
+}
+
+message STCouponEntity{
+    string CouponEntityId=1;
+    string Name=2;
+    string CouponTypeName=3;
+    string UsageDescription=4;
+    string TitleProfit=5;
+    string TitleCondition=6;
+    string TitleConditionAndProfit=7;
+    string TitleTime=8;
+    uint64 IssueTime=9;
+    uint64 ExpireTime=10;
+    string Status=11;
+    bool CanUse=12;
+    float Amount=13;
+    uint64 UseBeginTime = 14;
+    uint64 UseEndTime = 15;
+}
+
+message STCoupon{
+    string Id=1;
+    string Name=2;
+    string CouponTypeName=3;
+    string UsageDescription=4;
+    string TitleProfit=5;
+    string TitleCondition=6;
+    string TitleConditionAndProfit=7;
+}
+
+message STActivity{
+    string PartionId=1;
+    string Id=2;
+    string Name=3;
+    string TypeName=4;
+    EnumActivityType ActivityType=5;
+    string ActivityTypeName=6;
+}
+
+message STRuleResult{
+    STActivity Activity=1;
+    EnumRuleStatus Status=2;
+    string Message =3;
+    bool HasProfit=4;
+    repeated STRuleSkuInfo RuleSkuInfos=5;
+    repeated STAdjustmentProfitAction AdjustmentProfitActions=6;
+    repeated STRewardProfitAction RewardProfitActions=7;
+}
+
+enum EnumActivityType{
+    UnknownActivityType=0;
+    ActivityPromotion=1;
+    ActivityCoupon=2;
+}
+enum EnumRuleStatus{
+    NotHaveQualify=0;
+    NotInTarget=1;
+    ProfitConditionReject=2;
+    ExcludeByOtherActivity=3;
+    Profit=4;
+    NoProfit=5;
+}
+message STRuleSkuInfo{
+    string ProductId=1;
+    string SkuId=2;
+    int32 Quantity=3;
+    float OrderPrice=4;
+    float LastActivityPrice=5;
+    float LastTotalAmount=6;
+    float Discount=7;
+    float ActivityPrice=8;
+    float TotalAmount=9;
+    repeated STAdjustmentProfitAction AdjustmentProfitActions=10;
+    repeated STRewardProfitAction RewardProfitActions=11;
+}
+
+enum EnumAdjustmentType{
+    UnknownAdjustmentType=0;
+    SkuAdjustment=1;
+    OrderItemAdjustment=2;
+    OrderAdjustment=3;
+    ExpressFeeAdjustment=4;
+}
+
+enum FreeDeliveryType{
+    UnknownFreeDeliveryType=0;
+    OrderFree=1;
+    OrderReduce=2;
+    SkuFree=3;
+    SkuReduce=4;
+}
+message STAdjustmentProfitAction{
+    EnumAdjustmentType AdjustmentType=1;
+    string Tag=2;
+    string Reason=3;
+    float Adjustment=4;
+    string SkuId=5;
+    FreeDeliveryType FreeDeliveryType=6;
+    repeated string FreeDeliveryRegions=7;
+    int32 AdjustCount = 8;
+}
+
+enum EnumRewardType{
+    UnknownRewardType=0;
+    RewardPoints=1;
+    RewardCoupon=2;
+    RewardGift=3;
+    RewardCash=4;
+}
+
+message STRewardProfitAction{
+    EnumRewardType RewardType=1;
+    string Tag=2;
+    string Reason=3;
+    string Args=4;
+}
+
+
+message STPreOrderResult{
+    repeated STCouponResult CouponResults=1;
+    repeated STPromotionResult PromotionResults=2;
+    STPaymentArgs PaymentArgsResult=3;
+}
+
+message STOrderResult{
+    STCouponResult CouponResult=1;
+    repeated STPromotionResult PromotionResults=2;
+    string PromotionResource=3;
+    STPaymentArgs PaymentArgsResult=4;
+}
+
+//促销活动产生支付结果 统一放在PayResult中，比如预售订单产生多阶段支付等
+message STPaymentArgs
+{
+    repeated STMktPayStage Stages=1;
+}
+
+message STMktPayStage
+{
+    string StageName=1;
+    double Amount=2;
+    uint64 StartTime=3;
+    uint64 EndTime=4;
+}
+
+
+message STPromotionTag{
+    string Tag=1;
+    string Description =2;
+}
+
+
+message STActivityInfo{
+    repeated STCoupon Coupons = 1;
+    repeated STPromotionTag PromotionTags=2;
+    STSpecialPromotionInfo SpecialPromotionInfo=3;
+}
+
+message STMarketProduct{
+    string PartionId=1;
+    string ProductId=2;
+    string CategoryId=3;
+}
+
+
+message GetProductActivityInfoRequest{
+    string PartionId=1;
+    STMarketProduct Product=2;
+    STPromotionActivityArgs PromotionArgs=3;
+}
+
+message GetProductActivityInfoResponse{
+    int32 Code=1;
+    string Msg = 2;
+    STActivityInfo Data=3;
+}
+
+message GetMemberCouponStatisticRequest{
+    string PartionId=1;
+    string MemberId=2;
+}
+
+message GetMemberCouponStatisticResponse{
+    int32 Code=1;
+    string Msg = 2;
+    MemberCouponStatistic Data=3;
+}
+
+message MemberCouponStatistic{
+    int32 UnusedCount=1;
+}
+
+
+message STTakeOverOrderAction{
+    string OrderAction =1;
+    string OrderActionControl =2;
+}
+
+message CheckTakeOverActionRequest{
+    string PartionId=1;
+    string Action=2;
+    string OrderId=3;
+    STPromotionActivityArgs PromotionArgs=4;
+}
+
+
+message CheckTakeOverActionResponse{
+    int32 Code=1;
+    string Msg = 2;
+}
+
+message PageQuerySpecialPromotionProductsRequest{
+    string PartionId=1;
+     int32 PageNo=2;
+    int32 PageSize=3;
+    string Sort=4;
+    bool IsAsc=5;
+    string ActivityTypeName=6;
+    repeated string ActivityIds=7;
+}
+
+message PageQuerySpecialPromotionProductsResponse{
+     int32 Code=1;
+    string Msg = 2;
+    PageQuerySpecialPromotionProductsResult Data=5;
+}
+
+message PageQuerySpecialPromotionProductsResult{
+      int32 PageNo=1;
+    int32 PageSize=2;
+    int32 PageCount=3;
+    int32 Total=4;
+    repeated STSpecialPromotionProduct Models=5;
+}
+
+message STSpecialPromotionProduct{
+    string PartionId=1;
+    string ProductId=2;
+    STSpecialPromotionInfo SpecialPromotionInfo=3;
+}
+
+message STSpecialPromotionInfo{
+    string Id=1;
+    string Name=2;
+    string ActivityType=3;
+    string ActivityTypeName=4;
+    string TitleActivity=5;
+    string TitleProfit=6;
+    string TitleCondition=7;
+    uint64 BeginTime=8;
+    uint64 EndTime=9;
+    uint64 CurrentTime=10;
+    string Info=11;
+    string PromotionType=12;
+    int32 PromptTime = 13;
+}
+
+message STNormalPromotionInfo{
+    string Id=1;
+    string Name=2;
+    string ActivityType=3;
+    string ActivityTypeName=4;
+    string TitleActivity=5;
+    string TitleProfit=6;
+    string TitleCondition=7;
+    uint64 BeginTime=8;
+    uint64 EndTime=9;
+    uint64 CurrentTime=10;
+    string Info=11;
+    repeated string Tags=12;
+    string Prompt = 13;
+}
+
+
+message CalcPromotionPriceRequest{
+    STMarketMember Member=1;
+    STMarketOrderItem OrderItem=2;
+}
+
+message CalcPromotionPriceResponse{
+    int32 Code=1;
+    string Msg = 2;
+    STPromotionPrice Data=3;
+}
+
+message GetNormalPromotionInfoRequest{
+    string PartionId=1;
+    string ActivityId=2;
+}
+
+message GetNormalPromotionInfoResponse{
+    int32 Code=1;
+    string Msg = 2;
+    STNormalPromotionInfo Data=3;
+}
+
+
+message STPromotionPrice{
+    STNormalPromotionInfo PromotionInfo=1;
+    string SkuId=2;
+    float Price=3;
+}
+
+message STMarketRightItem{
+    string RightReason=1;
+    string RightCode=2;
+    string Args=3;
+}
+
+
+message IssueCouponRequest{
+    string PartionId=1;
+    string MemberId=2;
+    string CouponId=3;
+    int32  Count=4; 
+}
+
+message IssueCouponResponse{
+     int32 Code=1;
+    string Msg = 2;
+    int32 IssuedCount=3;
+}
+
+

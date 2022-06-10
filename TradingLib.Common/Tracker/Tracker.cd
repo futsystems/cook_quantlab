@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="TradingLib.Common.GenericTracker&lt;T&gt;">
+    <Position X="3.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQIgAAADAIBBAQCEAAMQQQAAAAAIAMAAAgAABAAQA=</HashCode>
+      <FileName>Tracker\GenericTracker.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingLib.Common.GenericTracker">
+    <Position X="1.25" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAQABAAIRCABBAABwAAQBAAAABUBAAIAICAAAAhCIM=</HashCode>
+      <FileName>Tracker\GenericTracker.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingLib.Common.OrderTracker">
+    <Position X="6" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAIgAhAAAIQBBVCAKQQZQREAAQAIBYBJAnAABACAA=</HashCode>
+      <FileName>Tracker\OrderTracker.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingLib.Common.PositionTracker" Collapsed="true">
+    <Position X="15" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAABkACAAAQAAAACAIAAAAEEBAACEABAAAAAADAAAA=</HashCode>
+      <FileName>Tracker\PositionTracker.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingLib.Common.PositionSizeTracker">
+    <Position X="12.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAgAACAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Tracker\PositionTracker.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingLib.Common.PositionPriceTracker">
+    <Position X="17.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAgAACAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Tracker\PositionTracker.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingLib.Common.FlatPositionTracker">
+    <Position X="10.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAgAAAAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Tracker\PositionTracker.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingLib.Common.LongPositionTracker">
+    <Position X="15" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAgAAAAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Tracker\PositionTracker.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingLib.Common.ShortPositionTracker">
+    <Position X="19.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAgAAAAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Tracker\PositionTracker.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="宋体" Size="9" />
+</ClassDiagram>

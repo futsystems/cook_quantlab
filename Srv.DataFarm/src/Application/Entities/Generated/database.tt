@@ -1,0 +1,49 @@
+﻿
+<#@ include file="UniCryptoLab.Core.ttinclude" #>
+<#
+    ConnectionString = "server=rm-gs5ig55q3d7wq43gpjo.mysql.singapore.rds.aliyuncs.com;port=3306;uid=user_data;pwd=VJQb5AcU9lqo;database=db_histdata;sslMode=none;charset=utf8";
+    ProviderName = "MySql.Data.MySqlClient";
+    
+    
+    
+    ConnectionStringName = "mysql";
+    Namespace = "UniCryptoLab.Entities";
+    RepoName = "Db";
+    IncludeViews = true;
+    GenerateOperations = true;
+    GeneratePocos = true;
+    GenerateCommon = false;
+    GenerateFunction = false;
+    ClassPrefix = "";
+    ClassSuffix = "Info";
+    TrackModifiedColumns = true; //是否跟踪修改列
+    ExplicitColumns = true;
+    ExcludePrefix = new string[] { }; // Exclude tables by prefix.
+    IncludeTables = new string[] {"HistBar","HistBarSyncTask"}; // 输入需要使用的表名，可以只针对某些表生成对象
+    ClassReplaces = new string[] { "UniCryptoLab_"};
+    
+    EnumLists = new Dictionary<string, string> {
+
+	    {"HistBarInfo.IntervalType", " TradingLib.API.BarInterval"},
+	    {"HistBarSyncTaskInfo.IntervalType", " TradingLib.API.BarInterval"},
+	    
+    };
+
+    
+    
+    
+    
+    
+	var tables = LoadTables();
+	if(tables.Count==0){return "无生成可用表";}
+/*
+	// Tweak Schema
+	tables["tablename"].Ignore = true;							// To ignore a table
+	tables["tablename"].ClassName = "newname";					// To change the class name of a table
+	tables["tablename"]["columnname"].Ignore = true;			// To ignore a column
+	tables["tablename"]["columnname"].PropertyName="newname";	// To change the property name of a column
+	tables["tablename"]["columnname"].PropertyType="bool";		// To change the property type of a column
+*/
+#>
+<#@ include file="UniCryptoLab.Generator.Migrations.ttinclude" #>
+<#@ include file="UniCryptoLab.Generator.ttinclude" #>

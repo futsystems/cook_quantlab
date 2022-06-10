@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>UniCryptoLab</RootNamespace>
+  </PropertyGroup>
+
+ <ItemGroup>
+    <PackageReference Include="Binance.Net" Version="8.1.2" />
+    <PackageReference Include="Grpc.Tools" Version="2.30.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NLog" Version="5.0.0" />
+    <PackageReference Include="SlackNet" Version="0.10.6" />
+     <PackageReference Include="UniCryptoLab.Task" Version="1.0.0" />
+     <PackageReference Include="UniCryptoLab.Web.Framework" Version="1.0.17" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Entities\Generated\database.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>database.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Entities\Generated\database.cs">
+      <DependentUpon>database.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Protobuf Include="Grpc\Proto\product.proto" />
+    <Protobuf Include="Grpc\Proto\market.proto" GrpcServices="Client" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Condition="'$(ExcludeConfigFilesFromBuildOutput)'=='true'" Update="nlog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Events" />
+    <Folder Include="Integration" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\TradingLib.API\TradingLib.API.csproj" />
+    <ProjectReference Include="..\..\..\TradingLib.Common\TradingLib.Common.csproj" />
+  </ItemGroup>
+
+
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <NoWarn>1701;1702;1591;1572;1573;1587</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <NoWarn>1701;1702;1591;1572;1573;1587</NoWarn>
+    </PropertyGroup>
+</Project>

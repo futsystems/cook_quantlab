@@ -1,0 +1,6 @@
+[submodule "Libraries"]
+	path = Libraries
+	url = git@github.com-unipayment:UniCryptoLab/Libraries.git
+[submodule "Libraries.Framework"]
+	path = Libraries.Framework
+	url = git@github.com-unipayment:UniCryptoLab/Libraries.Framework.git

@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.810.21
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantLab", "QuantLab\QuantLab.csproj", "{F8133A29-416A-402C-91F3-FBDE6F9C956F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradingLib.API", "TradingLib.API\TradingLib.API.csproj", "{779F94A8-AC06-40A6-9E6A-B488F4B0DE16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradingLib.Common", "TradingLib.Common\TradingLib.Common.csproj", "{CA208721-2739-4EFC-9272-00AE77503A85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradingLib.DataFeed", "TradingLib.DataFeed\TradingLib.DataFeed.csproj", "{545586C7-226A-47E4-B5D0-4FC4B1301689}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinanceHandler", "BinanceHandler\BinanceHandler.csproj", "{8BFA2A46-3165-44A6-8892-0B381A3EF370}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Srv.DataFarm", "Srv.DataFarm\src\Application\Srv.DataFarm.csproj", "{104DC006-DBCD-4AAF-90B6-F25228CF41B1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F8133A29-416A-402C-91F3-FBDE6F9C956F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8133A29-416A-402C-91F3-FBDE6F9C956F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8133A29-416A-402C-91F3-FBDE6F9C956F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8133A29-416A-402C-91F3-FBDE6F9C956F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{779F94A8-AC06-40A6-9E6A-B488F4B0DE16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{779F94A8-AC06-40A6-9E6A-B488F4B0DE16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{779F94A8-AC06-40A6-9E6A-B488F4B0DE16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{779F94A8-AC06-40A6-9E6A-B488F4B0DE16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA208721-2739-4EFC-9272-00AE77503A85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA208721-2739-4EFC-9272-00AE77503A85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA208721-2739-4EFC-9272-00AE77503A85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA208721-2739-4EFC-9272-00AE77503A85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{545586C7-226A-47E4-B5D0-4FC4B1301689}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{545586C7-226A-47E4-B5D0-4FC4B1301689}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{545586C7-226A-47E4-B5D0-4FC4B1301689}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{545586C7-226A-47E4-B5D0-4FC4B1301689}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BFA2A46-3165-44A6-8892-0B381A3EF370}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BFA2A46-3165-44A6-8892-0B381A3EF370}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BFA2A46-3165-44A6-8892-0B381A3EF370}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BFA2A46-3165-44A6-8892-0B381A3EF370}.Release|Any CPU.Build.0 = Release|Any CPU
+		{104DC006-DBCD-4AAF-90B6-F25228CF41B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{104DC006-DBCD-4AAF-90B6-F25228CF41B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{104DC006-DBCD-4AAF-90B6-F25228CF41B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{104DC006-DBCD-4AAF-90B6-F25228CF41B1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F0B97361-9D98-43C8-981D-AD4C5050B377}
+	EndGlobalSection
+EndGlobal

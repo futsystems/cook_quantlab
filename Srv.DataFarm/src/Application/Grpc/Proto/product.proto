@@ -1,0 +1,304 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "UniCryptoLab.Grpc.API";
+
+package ProductApi;
+
+service Product {
+    rpc GetProductById(GetProductByIdRequest) returns (GetProductByIdResponse) {}
+    rpc GetProductDetailById(GetProductDetailByIdRequest) returns (GetProductDetailByIdResponse) {}
+    rpc GetProductSkuDetail(GetProductSkuDetailRequest) returns (GetProductSkuDetailResponse) {}
+    rpc GetProductSkuDetails(GetProductSkuDetailsRequest) returns (GetProductSkuDetailsResponse) {}
+    rpc PageQueryBriefProduct(PageQueryBriefProductRequest) returns (PageQueryBriefProductResponse) {}
+
+    rpc InitData(InitProductDataRequest) returns (InitProductDataResponse) {}
+}
+
+
+message GetProductByIdRequest{
+    string PartionId=1;
+    string Id=2;
+}
+
+message GetProductDetailByIdRequest{
+    string PartionId=1;
+    string Id=2;
+}
+
+message GetProductDetailByIdResponse{
+    int32 Code=1;
+    string Msg = 2;
+    STProductDetail Data = 3;
+}
+message GetProductByIdResponse{
+    int32 Code=1;
+    string Msg = 2;
+    STProduct Data = 3;
+}
+
+message GetProductSkuDetailRequest{
+    string PartionId=1;
+    string SkuId=2;
+}
+
+message GetProductSkuDetailResponse{
+    int32 Code=1;
+    string Msg = 2;
+    STProductSkuDetail Data = 3;
+}
+
+message GetProductSkuDetailsRequest{
+    string PartionId=1;
+    repeated string SkuIds=2;
+}
+
+message GetProductSkuDetailsResponse{
+    int32 Code=1;
+    string Msg = 2;
+    repeated STProductSkuDetail Data = 3;
+}
+
+
+enum EnnumProductType{
+    UnknowProductType=0;
+    Real=1;
+    Virtual=2;
+    OTO=3;
+}
+
+enum EnumSaleStatus{
+    OffSale=0;//下架
+    InDraft=1;//草稿箱
+    OnSale=2;//上架 
+    WaitOnSale=3;//延迟上架
+    PreSale=4;//预售
+    
+}
+
+enum EnumProductAuditStatus{
+    Pending=0;
+    AuditPass=1;
+    AuditReject=2;
+    InfractionSaleOff=3;
+}
+
+enum EnumProductPaymentTermType{
+    UnknowPaymentType=0;
+    CashInAdvance=1;
+    CashOnDelivery=2;
+    Installment=3;
+}
+
+enum EnumDeliveryType{
+    UnknowDeliveryType=0;
+    NoDelivery=1;//无需物流
+    Express=2;//快递 
+    SelfPickup=3;//自提 
+    IntraCity=4;//同城配送 
+}
+
+enum EnumVerifyType{
+    NotSupported=0;
+    SingleVerificationForTotalOrder=1;
+    SingleVerification=2;
+    MultipleVerification=3;
+}
+
+enum EnumVerifyTimeLimitType{
+    UnknownVerifyTimeSpane=0;
+    VerifyTimeSpan=1;
+    VerifyTimeDay=2;
+}
+
+enum EnumFreightChargeType{
+    UnknowFreightChargeType=0;
+    FixedPrice=1;
+    FreightTemplate=2;
+}
+
+enum EnumRefundSupportType{
+    NoRefund=0; //不可退款
+    NoRefundOverTime=1;//超时不可退款   
+    RefundAnyTime=2;//任何时候可以退款
+}
+
+enum EnumBuyLimitCycleType{
+    Life=0;
+    Day=1;
+    Week=2;
+    Month=3;
+}
+
+message STProduct{
+    string PartionId=1;
+    string Id=2;
+    string MerchantId=3;
+    string MerchantName=4;
+    string MerchantLogoUrl = 5;
+    string CategoryId=6;
+    EnnumProductType ProductType=7;
+    string Title=8;
+    string Subtitle=9;
+    string ImageUrl=10;
+    EnumSaleStatus SaleStatus=11;
+    EnumProductAuditStatus AuditStatus=12;
+    string Unit=13;
+    float Price=14;
+    int32 Stock=15;
+    float Weight=16;
+    float Width=17;
+    float Height=18;
+    float Length=19;
+    int32 PayOverTime=20;
+    EnumRefundSupportType RefundSupportType=21;
+    repeated EnumProductPaymentTermType SupportPaymentTermTypes=22;//支持付款类型 预付 到付
+    repeated EnumDeliveryType SupportDeliveryTypes=23;//支持货物交付类别 
+    STFreightConfig FreightConfig=24;//商品运费设置 
+    STVerifyConfig VerifyConfig=25;//商品核销设置
+    STBuyLimitConfig BuyLimitConfig=26;
+    float MinPrice=27;
+    float MaxPrice=28;
+    bool MemberDiscount=29;
+    bool HasSku=30;
+}
+
+message STProductDetail{
+    STProduct Product = 1;
+    repeated STProductSku Skus=2;
+}
+
+message STFreightConfig{
+    EnumFreightChargeType FreightChargeType=1;//运费计算方式
+    float FixedPrice=2;//固定收费金额 
+    string FreightTemplateId=3;//收费模版
+}
+
+message STVerifyConfig{
+    EnumVerifyType VerifyType=1;//核销方式 
+    EnumVerifyTimeLimitType VerifyTimeLimitType=2; //核销时间限定方式 
+    uint64 VerifyBeginTime=3;//时间限定开始 
+    uint64 VerifyEndTime=4;//时间限定结束
+    int32 VerifyAfterDays=5;//核销开始天数 
+    int32 VerifyExpireDays=6;//核销过期天数 
+}
+
+message STBuyLimitConfig{
+    EnumBuyLimitCycleType BuyLimitCycleType=1;
+    int32 BuyLimitCount=2;//限购数量
+}
+
+message STProductSku{
+    string PartionId=1;
+    string Id=2;
+    string ProductId=3;
+    string Title=4;
+    string Subtitle=5;
+    float SalePrice=6;
+    float CostPrice=7;
+    float MarketPrice=8;
+    float MemberPrice=9;
+    int32 Stock=10;
+    float Weight=11;
+    float Width=12;
+    float Height=13;
+    float Length=14;
+    string AttributeMatrixValue=15;
+    string AttributeMatrixSeq=16;
+    string SkuImageUrl=17;
+   
+}
+
+
+message STProductSkuDetail{
+    string PartionId=1;
+    string ProductId=2;
+    string MerchantId=3;
+    string BranchId=4;
+    EnnumProductType ProductType=5;
+    string ProductTitle=6;
+    string ProductSubtitle=7;
+    string ProductImageUrl=8;
+    EnumSaleStatus SaleStatus=9;
+    EnumProductAuditStatus AuditStatus=10;
+    string Unit=11;
+    
+    int32 PayOverTime=12;
+    EnumRefundSupportType RefundSupportType=13;
+    repeated EnumProductPaymentTermType SupportPaymentTermTypes=14;//支持付款类型 预付 到付
+    repeated EnumDeliveryType SupportDeliveryTypes=15;//支持货物交付类别 
+    STFreightConfig FreightConfig=16;//商品运费设置 
+    STVerifyConfig VerifyConfig=17;//商品核销设置
+    STBuyLimitConfig BuyLimitConfig=18;
+
+    string SkuId=19;
+    string SkuCode=20;
+    float SalePrice=21;
+    float CostPrice=22;
+    float MarketPrice=23;
+    float MemberPrice=24;
+    int32 Stock=25;
+    float Weight=26;
+    float Width=27;
+    float Height=28;
+    float Length=29;
+    string AttributeMatrixValue=30;
+    string AttributeMatrixSeq=31;
+
+    bool ProductMemberDiscount=32;
+    bool ProductHasSku=33;
+    bool MemberPriceEnable=34;
+    string SkuImageUrl=35;
+    
+}
+
+
+message PageQueryBriefProductRequest{
+    string PartionId=1;
+    int32 PageNo=2;
+    int32 PageSize=3;
+    string Sort=4;
+    bool IsAsc=5;
+    repeated string ProductIds=6;
+    repeated string ExcludeProductIds=7;
+    string Keywords=8;
+}
+
+message PageQueryBriefProductResponse{
+    int32 Code=1;
+    string Msg = 2;
+    STPageQueryBriefProductData Data=3;
+}
+
+message STPageQueryBriefProductData{
+     int32 PageNo=1;
+    int32 PageSize=2;
+    int32 PageCount=3;
+    int32 Total=4;
+    repeated STBriefProduct Models=5;
+}
+
+message STBriefProduct{
+    string PartionId=1;
+    string Id=2;
+    string MerchantId=3;
+    string BranchId=4;
+    EnnumProductType ProductType=5;
+    string Title=6;
+    string Subtitle=7;
+    string ImageUrl=8;
+    EnumSaleStatus SaleStatus=9;
+    EnumProductAuditStatus AuditStatus=10;
+    float Price=11;
+    float MinPrice=12;
+    float MaxPrice=13;
+}
+
+
+message InitProductDataRequest{
+    string PartionId = 1;
+    
+}
+message InitProductDataResponse{
+    int32 Code=1;
+    string Msg = 2;
+}
