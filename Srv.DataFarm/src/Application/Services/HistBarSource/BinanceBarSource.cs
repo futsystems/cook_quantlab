@@ -59,7 +59,7 @@ namespace UniCryptoLab.Services
             var symbol =  $"{info.Base}{info.Quote}";
             var barSymbol =  $"{info.Exchange}-{info.Symbol}";
             var span = TimeSpan.FromMinutes(1);
-            var result = await client.SpotApi.ExchangeData.GetKlinesAsync(symbol, KlineInterval.OneMinute, start, end, 10);
+            var result = await client.SpotApi.ExchangeData.GetKlinesAsync(symbol, KlineInterval.OneMinute, start, end, 1000);
             if (result.Success)
             {
                 var items = result.Data.Select(e => ConvertToLocalBar(barSymbol, e, span)).ToList();
