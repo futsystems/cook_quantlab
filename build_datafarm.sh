@@ -1,5 +1,7 @@
 #!/bin/bash
 
+git pull
+
 supervisorctl stop srv.datafarm
 
 
