@@ -43,7 +43,12 @@ namespace TradingLib.Common
         /// 报价资产
         /// </summary>
         public string Quote { get; set; }
-        
+
+        /// <summary>
+        /// 期货到期日
+        /// </summary>
+        public string Expire { get; set; }
+
         /// <summary>
         /// SPOT FUTURES OPTION PERPETUAL INDEX CREDIT CONTRACT
         /// </summary>
@@ -58,13 +63,32 @@ namespace TradingLib.Common
 
                 var tmp = symbol.Split("_",2);
                 info.SymbolType = tmp[0];
-                if (info.SymbolType == "SPOT")
+                if (info.SymbolType == SymbolInfo.TYPE_SPOT)
                 {
                     var tmp2 = tmp[1].Split("_");
                     if (tmp2.Length == 2)
                     {
                         info.Base = tmp2[0];
                         info.Quote = tmp2[1];
+                    }
+                }
+                else if (info.SymbolType == SymbolInfo.TYPE_PERPETUAL)
+                {
+                    var tmp2 = tmp[1].Split("_");
+                    if (tmp2.Length == 2)
+                    {
+                        info.Base = tmp2[0];
+                        info.Quote = tmp2[1];
+                    }
+                }
+                else if (info.SymbolType == SymbolInfo.TYPE_FUTURES)
+                {
+                    var tmp2 = tmp[1].Split("_");
+                    if (tmp2.Length == 3)
+                    {
+                        info.Base = tmp2[0];
+                        info.Quote = tmp2[1];
+                        info.Expire = tmp2[2];
                     }
                 }
                 return info;

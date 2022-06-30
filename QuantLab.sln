@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Srv.DataFarm", "Srv.DataFar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TickWriter", "TickWriter\TickWriter.csproj", "{F7160ABC-5DB4-448A-A9F4-DB455D39A5CD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinanceHandlerCoin", "BinanceHandlerC\BinanceHandlerCoin.csproj", "{E1323261-0A3A-4D4F-9485-978B803EEB2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{F7160ABC-5DB4-448A-A9F4-DB455D39A5CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7160ABC-5DB4-448A-A9F4-DB455D39A5CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7160ABC-5DB4-448A-A9F4-DB455D39A5CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1323261-0A3A-4D4F-9485-978B803EEB2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1323261-0A3A-4D4F-9485-978B803EEB2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1323261-0A3A-4D4F-9485-978B803EEB2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1323261-0A3A-4D4F-9485-978B803EEB2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
