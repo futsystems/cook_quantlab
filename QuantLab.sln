@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TickWriter", "TickWriter\Ti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinanceHandlerCoin", "BinanceHandlerC\BinanceHandlerCoin.csproj", "{E1323261-0A3A-4D4F-9485-978B803EEB2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinanceHandlerUSD", "BinanceHandlerU\BinanceHandlerUSD.csproj", "{8EE68B73-4071-476E-B2F4-730930F2FC68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{E1323261-0A3A-4D4F-9485-978B803EEB2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1323261-0A3A-4D4F-9485-978B803EEB2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1323261-0A3A-4D4F-9485-978B803EEB2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EE68B73-4071-476E-B2F4-730930F2FC68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EE68B73-4071-476E-B2F4-730930F2FC68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EE68B73-4071-476E-B2F4-730930F2FC68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EE68B73-4071-476E-B2F4-730930F2FC68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

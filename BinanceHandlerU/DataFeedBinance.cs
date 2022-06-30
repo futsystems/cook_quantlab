@@ -11,6 +11,7 @@ using Binance.Net;
 using Binance.Net.Clients;
 using Binance.Net.Interfaces;
 using Binance.Net.Objects;
+using Binance.Net.Objects.Models.Futures.Socket;
 using Binance.Net.Objects.Models.Spot.Socket;
 using CryptoExchange.Net.Sockets;
 
@@ -41,7 +42,7 @@ namespace BinanceHander
             }
         }
 
-        private BinanceSocketClient spotClient = null;
+        private BinanceSocketClient socketClient = null;
         
         public override void Start()
         {
@@ -52,9 +53,9 @@ namespace BinanceHander
             }
             
 
-            if (spotClient == null)
+            if (socketClient == null)
             {
-                spotClient = new BinanceSocketClient();
+                socketClient = new BinanceSocketClient();
             }
             
             this.OnConnected();
@@ -65,7 +66,7 @@ namespace BinanceHander
         /// Trade
         /// </summary>
         /// <param name="evt"></param>
-        void HandleEvent(DataEvent<BinanceStreamTrade> evt)
+        void HandleEvent(DataEvent<BinanceStreamAggregatedTrade> evt)
         {
             if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k))
             {
@@ -86,7 +87,7 @@ namespace BinanceHander
         /// Quote
         /// </summary>
         /// <param name="evt"></param>
-        void HandleEvent(DataEvent<BinanceStreamBookPrice> evt)
+        void HandleEvent(DataEvent<BinanceFuturesStreamBookPrice> evt)
         {
             if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k))
             {
@@ -121,7 +122,7 @@ namespace BinanceHander
         /// Order Book
         /// </summary>
         /// <param name="evt"></param>
-        void HandeEvent(DataEvent<IBinanceOrderBook> evt)
+        void HandeEvent(DataEvent<IBinanceFuturesEventOrderBook> evt)
         {
             if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k))
             {
@@ -247,14 +248,26 @@ namespace BinanceHander
         
         protected override string ConvertSymbol2FeedFormat(SymbolInfo info)
         {
-            if (info.SymbolType == SymbolInfo.TYPE_SPOT)
+            if (info.SymbolType == SymbolInfo.TYPE_PERPETUAL)
             {
-                return $"{info.Base}{info.Quote}";
+                //币本位
+                if (info.Quote == "USDT")
+                {
+                    return $"{info.Base}{info.Quote}_PERP";
+                }
             }
-            else
+            
+            else if (info.SymbolType == SymbolInfo.TYPE_FUTURES)
             {
-                throw new NotImplementedException();
+                //币本位
+                if (info.Quote == "USDT")
+                {
+                    return $"{info.Base}{info.Quote}_{info.Expire}";
+                }
             }
+
+            //empty feed symbol will not register data
+            return string.Empty;
         }
 
         
@@ -274,14 +287,14 @@ namespace BinanceHander
             }
 
             //注册数据
-            if (spotClient != null)
+            if (socketClient != null)
             {
                 //trade stream
-                spotClient.SpotStreams.SubscribeToTradeUpdatesAsync(symbol, HandleEvent);
+                socketClient.UsdFuturesStreams.SubscribeToAggregatedTradeUpdatesAsync(symbol, HandleEvent);
                 //quote stream best ask/bid
-                spotClient.SpotStreams.SubscribeToBookTickerUpdatesAsync(symbol, HandleEvent);
+                socketClient.UsdFuturesStreams.SubscribeToBookTickerUpdatesAsync(symbol, HandleEvent);
                 //order book
-                spotClient.SpotStreams.SubscribeToPartialOrderBookUpdatesAsync(symbol, 10, 100, HandeEvent);
+                socketClient.UsdFuturesStreams.SubscribeToPartialOrderBookUpdatesAsync(symbol, 10, 100, HandeEvent);
             }
             
         }
