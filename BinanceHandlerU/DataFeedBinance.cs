@@ -251,16 +251,16 @@ namespace BinanceHander
             if (info.SymbolType == SymbolInfo.TYPE_PERPETUAL)
             {
                 //币本位
-                if (info.Quote == "USDT")
+                if (info.Quote == "USDT" || info.Quote == "BUSD")
                 {
-                    return $"{info.Base}{info.Quote}_PERP";
+                    return $"{info.Base}{info.Quote}";
                 }
             }
             
             else if (info.SymbolType == SymbolInfo.TYPE_FUTURES)
             {
                 //币本位
-                if (info.Quote == "USDT")
+                if (info.Quote == "USDT" || info.Quote == "BUSD")
                 {
                     return $"{info.Base}{info.Quote}_{info.Expire}";
                 }
