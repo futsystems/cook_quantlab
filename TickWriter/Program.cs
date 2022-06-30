@@ -9,6 +9,8 @@ namespace TickWriter
 {
     class Program
     {
+        private static NLog.ILogger logger = NLog.LogManager.GetCurrentClassLogger();
+        
         static void Main(string[] args)
         {
             IConfiguration configuration = new ConfigurationBuilder()
@@ -19,31 +21,30 @@ namespace TickWriter
 
             var config = new TickWriterConfig(); 
             configuration.Bind("TickWriter", config);
-
-
-            var path = Path.Combine(config.DataPath, "tick", "trades");
-            if (!Directory.Exists(path))
+            
+            logger.Info($"Data path:{config.DataPath}");
+            if (!Directory.Exists(config.DataPath))
             {
-                Directory.CreateDirectory(path);
+                Directory.CreateDirectory(config.DataPath);
             }
             
-            TickRepository rep = new TickRepository(path);
+            TickRepository rep = new TickRepository(config.DataPath);
 
             ITickFeed feed = new FastTickDataFeed(config.MasterTick, config.SlaveTick, config.DataPort, config.ReqPort);
             feed.TickEvent += (f, t) =>
             {
-                //Console.WriteLine(t.ToString());
                 rep.NewTick(t);
             };
             feed.Start();
 
             foreach (var prefix in config.TickPrefix.Split("|"))
             {
+                logger.Info($"Register preifx: {prefix}");
                 feed.Register(prefix);
             }
             
             
-            Console.WriteLine("TickWriter started");
+            logger.Info("TickWriter started");
             while (true)
             {
                 Thread.Sleep(10000);
