@@ -58,4 +58,5 @@
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <NoWarn>1701;1702;1591;1572;1573;1587</NoWarn>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(RunConfiguration)' == 'UniCryptoLab.Srv.Notify' " />
 </Project>
