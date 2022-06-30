@@ -32,7 +32,7 @@ namespace TickWriter
             ITickFeed feed = new FastTickDataFeed(config.MasterTick, config.SlaveTick, config.DataPort, config.ReqPort);
             feed.TickEvent += (f, t) =>
             {
-                Console.WriteLine(t.ToString());
+                //Console.WriteLine(t.ToString());
                 rep.NewTick(t);
             };
             feed.Start();
