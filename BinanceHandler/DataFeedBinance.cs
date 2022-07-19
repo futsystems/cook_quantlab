@@ -253,7 +253,7 @@ namespace BinanceHander
             }
             else
             {
-                throw new NotImplementedException();
+                return string.Empty;
             }
         }
 
