@@ -70,7 +70,7 @@ namespace TradingLib.DataFeed
                 if (string.IsNullOrEmpty(feedexchange) || string.IsNullOrEmpty(feedsymbol))
                 {
                     logger.Warn("Exchange or Symbol can not be null or empty");
-                    return;
+                    continue;
                 }
 
                 //建立FeedSymbol到本地辨准Symbol的映射
