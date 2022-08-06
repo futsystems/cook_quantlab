@@ -14,7 +14,12 @@ using Binance.Net.Objects;
 using Binance.Net.Objects.Models.Spot.Socket;
 using CryptoExchange.Net.Sockets;
 
-
+//doc
+/*
+ * https://jkorf.github.io/Binance.Net/
+ * https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+ * 
+ */
 namespace BinanceHander
 {
     /// <summary>
@@ -56,6 +61,8 @@ namespace BinanceHander
             {
                 spotClient = new BinanceSocketClient();
             }
+
+            var client = new BinanceClient();
             
             this.OnConnected();
         }
@@ -121,10 +128,11 @@ namespace BinanceHander
         /// Order Book
         /// </summary>
         /// <param name="evt"></param>
-        void HandeEvent(DataEvent<IBinanceOrderBook> evt)
+        void HandleEvent(DataEvent<IBinanceOrderBook> evt)
         {
             if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k))
             {
+               
                 //更新Quote
                 var item = evt.Data.Asks.ElementAt(0);
                 k.AskPrice = (double)item.Price;
@@ -213,8 +221,57 @@ namespace BinanceHander
                 this.NewTick(k);
             }
         }
-        
 
+
+        private ConcurrentDictionary<string, OrderBook> feedSym2Orderbook =
+            new ConcurrentDictionary<string, OrderBook>();
+        
+        void HandleEvent(DataEvent<IBinanceEventOrderBook> evt)
+        {
+            if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k) && evt.Data.Symbol == "BTCUSDT")
+            {
+                if (!feedSym2Orderbook.TryGetValue(evt.Data.Symbol.ToUpper(), out var orderBook))
+                {
+                    orderBook = new OrderBook();
+                    feedSym2Orderbook.TryAdd(evt.Data.Symbol.ToUpper(), orderBook);
+                }
+
+
+                //实时数据updateId 小于等于 orderbook updateId 则该事件已经包含在orderbook中 丢弃
+                if (orderBook.Synced ==true)
+                {
+                    if (evt.Data.FirstUpdateId > orderBook.LastUpdateId)
+                    {
+                        if (evt.Data.FirstUpdateId == orderBook.LastUpdateId + 1)
+                        {
+                            //更新orderbook
+                            foreach (var item in evt.Data.Asks)
+                            {
+                                orderBook.UpdateAsk((double)item.Price, (double)item.Quantity);
+                            }
+
+                            foreach (var item in evt.Data.Bids)
+                            {
+                                orderBook.UpdateBid((double)item.Price, (double)item.Quantity);
+                            }
+
+                            orderBook.LastUpdateId = evt.Data.LastUpdateId;
+                        }
+                        else
+                        {
+                            //有数据丢失，重新处理OrderBook
+                        }
+                    }
+
+                }
+                
+            }
+        }
+
+        void ProcessOrderBookUpdate(DataEvent<IBinanceEventOrderBook> evt)
+        {
+            
+        }
         public override void Stop()
         {
             if (!_isrunning)
@@ -281,7 +338,9 @@ namespace BinanceHander
                 //quote stream best ask/bid
                 spotClient.SpotStreams.SubscribeToBookTickerUpdatesAsync(symbol, HandleEvent);
                 //order book
-                spotClient.SpotStreams.SubscribeToPartialOrderBookUpdatesAsync(symbol, 10, 100, HandeEvent);
+                spotClient.SpotStreams.SubscribeToPartialOrderBookUpdatesAsync(symbol, 20, 100, HandleEvent);
+                //Diff. Depth Stream
+                spotClient.SpotStreams.SubscribeToOrderBookUpdatesAsync(symbol, 100, HandleEvent);
             }
             
         }
