@@ -497,7 +497,7 @@ namespace TradingLib.Common
                     {
                         break;
                     }
-                case "AO":
+                case "DO":
                 {
                     sb.Append(k.TickContent1);
                     sb.Append(d);
@@ -750,7 +750,7 @@ namespace TradingLib.Common
                     {
                         break;
                     }
-                case "AO":
+                case "DO":
                 {
                     k.TickContent1 = r[7];
                     k.TickContent2 = r[8];
