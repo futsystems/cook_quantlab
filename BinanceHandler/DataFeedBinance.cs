@@ -235,6 +235,7 @@ namespace BinanceHander
 
                         k.TickContent1 = orderBook.SerializeAsk();
                         k.TickContent2 = orderBook.SerializeBid();
+                        k.TickContent3 = orderBook.LastUpdateId.ToString();
                         k.UpdateType = "DO";
                         this.NewTick(k);
                     }
