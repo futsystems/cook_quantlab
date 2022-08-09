@@ -314,6 +314,7 @@ namespace BinanceHander
         {
             if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k) && evt.Data.Symbol.ToUpper() == "BTCUSDT")
             {
+                logger.Info($"depth order update id:{evt.Data.LastUpdateId}");
                 if (!feedSym2Orderbook.TryGetValue(evt.Data.Symbol.ToUpper(), out var orderBook))
                 {
                     orderBook = new OrderBook(evt.Data.Symbol.ToUpper());
