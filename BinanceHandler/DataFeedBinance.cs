@@ -238,7 +238,10 @@ namespace BinanceHander
                         k.UpdateType = "DO";
                         this.NewTick(k);
                     }
+                    logger.Info($"order book updateId:{evt.Data.LastUpdateId}  local order book updateId:{orderBook.LastUpdateId}");
                 }
+                
+                
             }
         }
 
