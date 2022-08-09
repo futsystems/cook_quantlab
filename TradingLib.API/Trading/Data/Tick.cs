@@ -146,22 +146,19 @@ namespace TradingLib.API
         double BidSize10 { get; set; }
         
         #endregion
-        
 
-       
-        
+        string TickContent1 { get; set; }
+
+        string TickContent2 { get; set; }
 
 
-      
+        string TickContent3 { get; set; }
+
+        string TickContent4 { get; set; }
+
     }
 
-    /// <summary>
-    /// ���������鴫������е��������
-    /// ���ݲ�ͬ�����ݿ��Խ�������ͬ����������
-    /// ������ÿ�ζ�������ͬ������ ����߿����յȲ������仯�ı���
-    /// Tick����Ϊ�˼��ݺ����ֲ�ͬ�����������鱨�� ��Ҫ�����ۺϴ���
-    /// 
-    /// </summary>
+   
     public enum EnumTickType
     { 
         /// <summary>

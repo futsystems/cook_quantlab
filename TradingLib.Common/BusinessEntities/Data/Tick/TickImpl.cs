@@ -154,6 +154,13 @@ namespace TradingLib.Common
             
         }
 
+        public string TickContent1 { get; set; }
+
+        public string TickContent2 { get; set; }
+        
+        public string TickContent3 { get; set; }
+
+        public string TickContent4 { get; set; }
 
         public static TickImpl Copy(Tick c)
         {
@@ -218,6 +225,11 @@ namespace TradingLib.Common
             k.BidPrice10 = c.BidPrice10;
             k.AskSize10 = c.AskSize10;
             k.BidSize10 = c.BidSize10;
+
+            k.TickContent1 = c.TickContent1;
+            k.TickContent2 = c.TickContent2;
+            k.TickContent3 = c.TickContent3;
+            k.TickContent4 = c.TickContent4;
             
             return k;
         }
@@ -485,6 +497,17 @@ namespace TradingLib.Common
                     {
                         break;
                     }
+                case "AO":
+                {
+                    sb.Append(k.TickContent1);
+                    sb.Append(d);
+                    sb.Append(k.TickContent2);
+                    sb.Append(d);
+                    sb.Append(k.TickContent3);
+                    sb.Append(d);
+                    sb.Append(k.TickContent4);
+                    break;
+                }
                 case "2U"://Level2 Update
                     {
                         sb.Append(k.Depth);
@@ -727,6 +750,14 @@ namespace TradingLib.Common
                     {
                         break;
                     }
+                case "AO":
+                {
+                    k.TickContent1 = r[7];
+                    k.TickContent2 = r[8];
+                    k.TickContent3 = r[9];
+                    k.TickContent4 = r[10];
+                    break;
+                }
                 case "2U":
                     {
                         k.Depth = int.Parse(r[7]);

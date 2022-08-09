@@ -64,6 +64,8 @@ namespace BinanceHander
 
             var client = new BinanceClient();
             
+            this.StartSync();
+            
             this.OnConnected();
         }
         
@@ -219,52 +221,116 @@ namespace BinanceHander
                 
                 k.UpdateType = "O";
                 this.NewTick(k);
+                
+                //发送本地OrderBook
+                if ( evt.Data.Symbol.ToUpper() == "BTCUSDT" && feedSym2Orderbook.TryGetValue(evt.Data.Symbol.ToUpper(), out var orderBook))
+                {
+                    if (orderBook.Synced)
+                    {
+                        //var result = orderBook.GetAggregatedAskOrderBook(20);
+                        // for(int i=0;i<result.Count;i++)
+                        // {
+                        //     logger.Info($"Ask{i} {result[i].Price}*{result[i].Quantity} {result[i].AvgFilledPrice}");
+                        // }
+
+                        k.TickContent1 = orderBook.SerializeAsk();
+                        k.TickContent2 = orderBook.SerializeBid();
+                        k.UpdateType = "DO";
+                        this.NewTick(k);
+                    }
+                }
             }
         }
 
+        BinanceDepth GetOrderBookDepth(string symbol)
+        {
+            var url = $"https://api.binance.com/api/v3/depth?symbol={symbol}&limit=1000";
+            var result = HttpHelper.Get<BinanceDepth>(url);
+            return result;
+        }
+
+        void StartSync()
+        {
+            if (_syncGo == false)
+            {
+                _syncGo = true;
+                _syncThread = new Thread(ProcessOrderBookSyncTask);
+                _syncThread.IsBackground = true;
+                _syncThread.Start();
+                
+            }
+        }
+
+
+        private Thread _syncThread = null;
+        private bool _syncGo = false;
+        ManualResetEvent _syncwaiting = new ManualResetEvent(false);
+        void ProcessOrderBookSyncTask()
+        {
+            while (_syncGo)
+            {
+                try
+                {
+                    foreach (var item in feedSym2Orderbook.Values.Where(e=>e.Synced == false).ToList())
+                    {
+                        //延迟5秒查询depth snapshot，可以获得updateId包含在实时数据中
+                        if (DateTime.UtcNow.Subtract(item.CacheTime).TotalSeconds > 5)
+                        {
+                            logger.Info($"sync order book depth data for:{item.FeedSymbol}");
+                            var result = this.GetOrderBookDepth(item.FeedSymbol);
+                            logger.Info($"snapshot last update id:{result.LastUpdateId}");
+                            
+                            lock (item)
+                            {
+                                item.UseOrderBookSnapshot(result);
+                                item.UseCachedOrderBookUpdate();
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
+
+                // clear current flag signal
+                _syncwaiting.Reset();
+
+                // wait for a new signal to continue reading
+                _syncwaiting.WaitOne(100);
+            }
+            
+          
+        }
 
         private ConcurrentDictionary<string, OrderBook> feedSym2Orderbook =
             new ConcurrentDictionary<string, OrderBook>();
         
         void HandleEvent(DataEvent<IBinanceEventOrderBook> evt)
         {
-            if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k) && evt.Data.Symbol == "BTCUSDT")
+            if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k) && evt.Data.Symbol.ToUpper() == "BTCUSDT")
             {
                 if (!feedSym2Orderbook.TryGetValue(evt.Data.Symbol.ToUpper(), out var orderBook))
                 {
-                    orderBook = new OrderBook();
+                    orderBook = new OrderBook(evt.Data.Symbol.ToUpper());
                     feedSym2Orderbook.TryAdd(evt.Data.Symbol.ToUpper(), orderBook);
-                }
-
-
-                //实时数据updateId 小于等于 orderbook updateId 则该事件已经包含在orderbook中 丢弃
-                if (orderBook.Synced ==true)
-                {
-                    if (evt.Data.FirstUpdateId > orderBook.LastUpdateId)
-                    {
-                        if (evt.Data.FirstUpdateId == orderBook.LastUpdateId + 1)
-                        {
-                            //更新orderbook
-                            foreach (var item in evt.Data.Asks)
-                            {
-                                orderBook.UpdateAsk((double)item.Price, (double)item.Quantity);
-                            }
-
-                            foreach (var item in evt.Data.Bids)
-                            {
-                                orderBook.UpdateBid((double)item.Price, (double)item.Quantity);
-                            }
-
-                            orderBook.LastUpdateId = evt.Data.LastUpdateId;
-                        }
-                        else
-                        {
-                            //有数据丢失，重新处理OrderBook
-                        }
-                    }
-
+                    //在其他线程内执行数据同步
+                    //var result = this.GetOrderBookDepth(evt.Data.Symbol.ToUpper());
                 }
                 
+                lock (orderBook)
+                {
+                    //logger.Info($"update id:{evt.Data.FirstUpdateId} - {evt.Data.LastUpdateId}");
+                    //实时数据updateId 小于等于 orderbook updateId 则该事件已经包含在orderbook中 丢弃
+                    if (orderBook.Synced == true)
+                    {
+                       orderBook.UpdateOrderBook(evt.Data);
+                    }
+                    else
+                    {
+                        orderBook.CacheOrderUpdate(evt.Data);
+                    }
+                }
             }
         }
 
