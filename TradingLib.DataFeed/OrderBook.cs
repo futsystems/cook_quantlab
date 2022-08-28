@@ -53,12 +53,14 @@ namespace TradingLib.DataFeed
     public class OrderBook
     {
         private NLog.ILogger logger = NLog.LogManager.GetCurrentClassLogger();
-        
+
+        public int TimeCount { get; set; }
         public bool Synced { get; set; }
 
         public DateTime CacheTime { get; set; }
         public DateTime OrderBookUpdateTime { get; set; }
 
+        public int Level { get; set; }
         public string FeedSymbol { get; set; }
         SortedList<decimal, OrderBookItem> AskItems { get; set; }
         SortedList<decimal, OrderBookItem> BidItems { get; set; }
@@ -67,7 +69,7 @@ namespace TradingLib.DataFeed
         
         public long LastUpdateId { get; set; }
 
-        public OrderBook(string feedSymbol)
+        public OrderBook(string feedSymbol, int level=500)
         {
             this.FeedSymbol = feedSymbol;
             this.AskItems = new SortedList<decimal, OrderBookItem>();
@@ -76,6 +78,8 @@ namespace TradingLib.DataFeed
             this.LastUpdateId = 0;
             this.Synced = false;
             this.CacheTime = DateTime.UtcNow;
+            this.Level = level;
+            this.TimeCount = 0;
         }
         
 
@@ -220,7 +224,7 @@ namespace TradingLib.DataFeed
         {
             StringBuilder sb = new StringBuilder();
             var items = this.AskItems.Values.ToList();
-            int totalCnt = items.Count;
+            int totalCnt = Math.Max(this.Level,items.Count);
             for(int i = 0;i<totalCnt; i++)
             {
                 sb.Append(items[i].Serialize2());
@@ -234,7 +238,7 @@ namespace TradingLib.DataFeed
         {
             StringBuilder sb = new StringBuilder();
             var items = this.BidItems.Values.ToList();
-            int totalCnt = items.Count;
+            int totalCnt = Math.Max(this.Level,items.Count);
             for(int i = 0;i<totalCnt; i++)
             {
                 sb.Append(items[totalCnt -1 - i].Serialize2());

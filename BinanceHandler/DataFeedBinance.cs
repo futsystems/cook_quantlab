@@ -225,21 +225,25 @@ namespace BinanceHander
                 //发送本地OrderBook
                 if ( evt.Data.Symbol.ToUpper() == "BTCUSDT" && feedSym2Orderbook.TryGetValue(evt.Data.Symbol.ToUpper(), out var orderBook))
                 {
-                    // if (orderBook.Synced)
-                    // {
-                    //     //var result = orderBook.GetAggregatedAskOrderBook(20);
-                    //     // for(int i=0;i<result.Count;i++)
-                    //     // {
-                    //     //     logger.Info($"Ask{i} {result[i].Price}*{result[i].Quantity} {result[i].AvgFilledPrice}");
-                    //     // }
-                    //
-                    //     k.TickContent1 = orderBook.SerializeAsk();
-                    //     k.TickContent2 = orderBook.SerializeBid();
-                    //     k.TickContent3 = orderBook.LastUpdateId.ToString();
-                    //     k.UpdateType = "DO";
-                    //     this.NewTick(k);
-                    // }
-                    logger.Info($"order book updateId:{evt.Data.LastUpdateId}  local order book updateId:{orderBook.LastUpdateId}");
+                    if (orderBook.Synced)
+                    {
+                        if (orderBook.TimeCount > 5)
+                        {
+
+                            k.TickContent1 = orderBook.SerializeAsk();
+                            k.TickContent2 = orderBook.SerializeBid();
+                            k.TickContent3 = orderBook.LastUpdateId.ToString();
+                            k.UpdateType = "DO";
+                            this.NewTick(k);
+                            orderBook.TimeCount = 0;
+                            logger.Info($"order book updateId:{evt.Data.LastUpdateId}  local order book updateId:{orderBook.LastUpdateId}");
+                        }
+                        else
+                        {
+                            orderBook.TimeCount++;
+                        }
+                    }
+                    
                 }
                 
                 
@@ -310,39 +314,33 @@ namespace BinanceHander
         private ConcurrentDictionary<string, OrderBook> feedSym2Orderbook =
             new ConcurrentDictionary<string, OrderBook>();
         
+        
         void HandleEvent(DataEvent<IBinanceEventOrderBook> evt)
         {
             if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k) && evt.Data.Symbol.ToUpper() == "BTCUSDT")
             {
-                logger.Info($"depth order update id:{evt.Data.LastUpdateId}");
+                //logger.Info($"depth order update id:{evt.Data.LastUpdateId}");
                 if (!feedSym2Orderbook.TryGetValue(evt.Data.Symbol.ToUpper(), out var orderBook))
                 {
                     orderBook = new OrderBook(evt.Data.Symbol.ToUpper());
-                    feedSym2Orderbook.TryAdd(evt.Data.Symbol.ToUpper(), orderBook);
-                    //在其他线程内执行数据同步
-                    //var result = this.GetOrderBookDepth(evt.Data.Symbol.ToUpper());
+                    feedSym2Orderbook.TryAdd(evt.Data.Symbol.ToUpper(), orderBook);//在其他线程内执行数据同步
                 }
                 
-                // lock (orderBook)
-                // {
-                //     //logger.Info($"update id:{evt.Data.FirstUpdateId} - {evt.Data.LastUpdateId}");
-                //     //实时数据updateId 小于等于 orderbook updateId 则该事件已经包含在orderbook中 丢弃
-                //     if (orderBook.Synced == true)
-                //     {
-                //        orderBook.UpdateOrderBook(evt.Data);
-                //     }
-                //     else
-                //     {
-                //         orderBook.CacheOrderUpdate(evt.Data);
-                //     }
-                // }
+                lock (orderBook)
+                {
+                    if (orderBook.Synced == true)
+                    {
+                       orderBook.UpdateOrderBook(evt.Data);
+                    }
+                    else
+                    {
+                        orderBook.CacheOrderUpdate(evt.Data);
+                    }
+                }
             }
         }
 
-        void ProcessOrderBookUpdate(DataEvent<IBinanceEventOrderBook> evt)
-        {
-            
-        }
+
         public override void Stop()
         {
             if (!_isrunning)
