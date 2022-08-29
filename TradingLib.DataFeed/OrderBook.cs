@@ -43,10 +43,11 @@ namespace TradingLib.DataFeed
         {
             return $"{this.Price} {this.Quantity} {this.AvgFilledPrice}";
         }
-        
+
+        private const string FORMAT = "0.########";
         public string Serialize2()
         {
-            return $"{this.Price} {this.Quantity}";
+            return $"{this.Price.ToString(FORMAT)} {this.Quantity.ToString(FORMAT)}";
         }
     }
     

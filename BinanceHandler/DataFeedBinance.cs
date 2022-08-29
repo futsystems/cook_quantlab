@@ -363,12 +363,14 @@ namespace BinanceHander
             }
         }
 
+        private const string FORMAT = "0.########";
+        
         string Serialize(IEnumerable<Binance.Net.Objects.Models.BinanceOrderBookEntry> entries)
         {
             StringBuilder sb = new StringBuilder();
             foreach (var item in entries)
             {
-                sb.Append($"{item.Price} {item.Quantity}");
+                sb.Append($"{item.Price.ToString(FORMAT)} {item.Quantity.ToString(FORMAT)}");
                 sb.Append('|');
             }
             return sb.ToString();
