@@ -13,6 +13,7 @@ using Binance.Net.Interfaces;
 using Binance.Net.Objects;
 using Binance.Net.Objects.Models.Spot.Socket;
 using CryptoExchange.Net.Sockets;
+using System.Threading;
 
 //doc
 /*
@@ -34,6 +35,42 @@ namespace BinanceHander
             : base(tickpot, exchange, address, qryport)
         { 
         
+            InitTimer();
+            timer.Start();
+            
+        }
+
+        System.Timers.Timer timer;
+        void InitTimer()
+        {
+            int interval = 1000 * 60 * 5;//5分钟发送一次快照
+            timer = new System.Timers.Timer(interval);
+            timer.AutoReset = true;
+            timer.Enabled = true;
+            timer.Elapsed += new System.Timers.ElapsedEventHandler(SendTickSnapshot);
+        }
+        
+
+
+        private void SendTickSnapshot(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            logger.Info("send tick snapshot");
+            foreach (var item in feedSym2Orderbook)
+            {
+                if (feedsym2tickSnapshotMap.TryGetValue(item.Key, out var k))
+                {
+                    lock (item.Value)
+                    {
+                        k.HostTime = DateTime.UtcNow.ToTimeStamp();
+                        k.TickTime = k.HostTime;
+                        k.TickContent1 = item.Value.SerializeAsk();
+                        k.TickContent2 = item.Value.SerializeBid();
+                        k.TickContent3 = item.Value.LastUpdateId.ToString();
+                        k.UpdateType = "OS";
+                        this.NewTick(k);
+                    }
+                }
+            }
         }
 
 
@@ -221,32 +258,6 @@ namespace BinanceHander
                 
                 k.UpdateType = "O";
                 this.NewTick(k);
-                
-                //发送本地OrderBook
-                if ( evt.Data.Symbol.ToUpper() == "BTCUSDT" && feedSym2Orderbook.TryGetValue(evt.Data.Symbol.ToUpper(), out var orderBook))
-                {
-                    if (orderBook.Synced)
-                    {
-                        if (orderBook.TimeCount > 5)
-                        {
-
-                            k.TickContent1 = orderBook.SerializeAsk();
-                            k.TickContent2 = orderBook.SerializeBid();
-                            k.TickContent3 = orderBook.LastUpdateId.ToString();
-                            k.UpdateType = "DO";
-                            this.NewTick(k);
-                            orderBook.TimeCount = 0;
-                            logger.Info($"order book updateId:{evt.Data.LastUpdateId}  local order book updateId:{orderBook.LastUpdateId}");
-                        }
-                        else
-                        {
-                            orderBook.TimeCount++;
-                        }
-                    }
-                    
-                }
-                
-                
             }
         }
 
@@ -336,8 +347,31 @@ namespace BinanceHander
                     {
                         orderBook.CacheOrderUpdate(evt.Data);
                     }
+                    
+                    //发送depth tick
+                    k.HostTime = DateTime.UtcNow.ToTimeStamp();
+                    k.TickTime = evt.Timestamp.ToTimeStamp();
+                    k.TickContent1 = Serialize(evt.Data.Asks);
+                    k.TickContent2 = Serialize(evt.Data.Bids);
+                    k.TickContent3 = evt.Data.FirstUpdateId.HasValue? evt.Data.FirstUpdateId.ToString():"0";
+                    k.TickContent4 = evt.Data.LastUpdateId.ToString();
+                    k.UpdateType = "OD";
+                    this.NewTick(k);
                 }
+                
+                
             }
+        }
+
+        string Serialize(IEnumerable<Binance.Net.Objects.Models.BinanceOrderBookEntry> entries)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in entries)
+            {
+                sb.Append($"{item.Price} {item.Quantity}");
+                sb.Append('|');
+            }
+            return sb.ToString();
         }
 
 

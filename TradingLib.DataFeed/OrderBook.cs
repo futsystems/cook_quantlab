@@ -53,8 +53,7 @@ namespace TradingLib.DataFeed
     public class OrderBook
     {
         private NLog.ILogger logger = NLog.LogManager.GetCurrentClassLogger();
-
-        public int TimeCount { get; set; }
+        
         public bool Synced { get; set; }
 
         public DateTime CacheTime { get; set; }
@@ -79,7 +78,6 @@ namespace TradingLib.DataFeed
             this.Synced = false;
             this.CacheTime = DateTime.UtcNow;
             this.Level = level;
-            this.TimeCount = 0;
         }
         
 

@@ -497,7 +497,8 @@ namespace TradingLib.Common
                     {
                         break;
                     }
-                case "DO":
+                case "OS":
+                case "OD":
                 {
                     sb.Append(k.TickContent1);
                     sb.Append(d);
@@ -508,6 +509,7 @@ namespace TradingLib.Common
                     sb.Append(k.TickContent4);
                     break;
                 }
+                
                 case "2U"://Level2 Update
                     {
                         sb.Append(k.Depth);
@@ -750,7 +752,8 @@ namespace TradingLib.Common
                     {
                         break;
                     }
-                case "DO":
+                case "OS":
+                case "OD":
                 {
                     k.TickContent1 = r[7];
                     k.TickContent2 = r[8];
