@@ -69,6 +69,12 @@ namespace TradingLib.DataFeed
         
         public long LastUpdateId { get; set; }
 
+
+        /// <summary>
+        /// 记录depth update的更新Id
+        /// </summary>
+        public long LastDataUpdateId { get; set; }
+
         public OrderBook(string feedSymbol, int level=500)
         {
             this.FeedSymbol = feedSymbol;

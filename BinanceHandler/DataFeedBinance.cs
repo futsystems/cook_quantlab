@@ -347,16 +347,43 @@ namespace BinanceHander
                     {
                         orderBook.CacheOrderUpdate(evt.Data);
                     }
+
+                    if (evt.Data.FirstUpdateId.HasValue)
+                    {
+                        if (evt.Data.FirstUpdateId.Value > orderBook.LastDataUpdateId)
+                        {
+                            orderBook.LastDataUpdateId = evt.Data.LastUpdateId;//将depth的最近更新Id记录到orderBook 用于排除数据源有乱序数据
+                            //发送depth tick
+                            k.HostTime = DateTime.UtcNow.ToTimeStamp();
+                            k.TickTime = evt.Timestamp.ToTimeStamp();
+                            k.TickContent1 = Serialize(evt.Data.Asks);
+                            k.TickContent2 = Serialize(evt.Data.Bids);
+                            k.TickContent3 = evt.Data.FirstUpdateId.HasValue ? evt.Data.FirstUpdateId.ToString() : "0";
+                            k.TickContent4 = evt.Data.LastUpdateId.ToString();
+                            k.UpdateType = "OD";
+                            this.NewTick(k);
+                        }
+                        else
+                        {
+                            logger.Info(
+                                $"got error detph update, {evt.Data.FirstUpdateId} - {evt.Data.LastUpdateId} order book last data update id: {orderBook.LastDataUpdateId}");
+                        }
+                    }
+                    else
+                    {
+                        orderBook.LastDataUpdateId = evt.Data.LastUpdateId;//将depth的最近更新Id记录到orderBook 用于排除数据源有乱序数据
+                        //发送depth tick
+                        k.HostTime = DateTime.UtcNow.ToTimeStamp();
+                        k.TickTime = evt.Timestamp.ToTimeStamp();
+                        k.TickContent1 = Serialize(evt.Data.Asks);
+                        k.TickContent2 = Serialize(evt.Data.Bids);
+                        k.TickContent3 = evt.Data.FirstUpdateId.HasValue ? evt.Data.FirstUpdateId.ToString() : "0";
+                        k.TickContent4 = evt.Data.LastUpdateId.ToString();
+                        k.UpdateType = "OD";
+                        this.NewTick(k);
+                        
+                    }
                     
-                    //发送depth tick
-                    k.HostTime = DateTime.UtcNow.ToTimeStamp();
-                    k.TickTime = evt.Timestamp.ToTimeStamp();
-                    k.TickContent1 = Serialize(evt.Data.Asks);
-                    k.TickContent2 = Serialize(evt.Data.Bids);
-                    k.TickContent3 = evt.Data.FirstUpdateId.HasValue? evt.Data.FirstUpdateId.ToString():"0";
-                    k.TickContent4 = evt.Data.LastUpdateId.ToString();
-                    k.UpdateType = "OD";
-                    this.NewTick(k);
                 }
                 
                 
