@@ -324,8 +324,9 @@ namespace BinanceHander
 
         private ConcurrentDictionary<string, OrderBook> feedSym2Orderbook =
             new ConcurrentDictionary<string, OrderBook>();
-        
-        
+
+
+        private long? lastUpdateId = 0;
         void HandleEvent(DataEvent<IBinanceEventOrderBook> evt)
         {
             if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k) && evt.Data.Symbol.ToUpper() == "BTCUSDT")
@@ -339,6 +340,19 @@ namespace BinanceHander
                 
                 lock (orderBook)
                 {
+                    if (lastUpdateId.HasValue && evt.Data.FirstUpdateId > lastUpdateId)//确保lastUpdateId有值 然后 顺序
+                    {
+                        if (lastUpdateId + 1 != evt.Data.FirstUpdateId)
+                        {
+                            logger.Info(
+                                $"--> data lost, lastupdateId:{lastUpdateId} current data first:{evt.Data.FirstUpdateId} last:{evt.Data.LastUpdateId}");
+                        }
+                    }
+                    else
+                    {
+                        lastUpdateId = evt.Data.LastUpdateId;
+                    }
+                    
                     if (orderBook.Synced == true)
                     {
                        orderBook.UpdateOrderBook(evt.Data);
