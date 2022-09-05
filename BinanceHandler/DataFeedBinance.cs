@@ -328,7 +328,7 @@ namespace BinanceHander
             new ConcurrentDictionary<string, OrderBook>();
 
 
-        private long? lastUpdateId = 0;
+        private long? lastUpdateId = null;
         private int lostCnt = 0;
         void HandleEvent(DataEvent<IBinanceEventOrderBook> evt)
         {
@@ -354,10 +354,7 @@ namespace BinanceHander
                                 logger.Info(
                                     $"--> data lost, lastupdateId:{lastUpdateId} current data first:{evt.Data.FirstUpdateId} last:{evt.Data.LastUpdateId}");
                             }
-                            else
-                            {
-                                lastUpdateId = evt.Data.LastUpdateId;
-                            }
+                            lastUpdateId = evt.Data.LastUpdateId;
                         }
                     }
                     else
