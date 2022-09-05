@@ -108,6 +108,7 @@ namespace TradingLib.DataFeed
 
             using (var pub = new PublisherSocket())
             {
+                pub.Options.SendHighWatermark = 10000;
                 string address = string.Format("tcp://{0}:{1}", _address, _port);
                 pub.Connect(address);
                 logger.Info(string.Format("TickPubSrv Start Pub Socket:{0}", address));
