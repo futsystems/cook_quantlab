@@ -71,6 +71,8 @@ namespace BinanceHander
                     }
                 }
             }
+
+            logger.Info($"depth update lost data detected cnt:{lostCnt}");
         }
 
 
@@ -327,6 +329,7 @@ namespace BinanceHander
 
 
         private long? lastUpdateId = 0;
+        private int lostCnt = 0;
         void HandleEvent(DataEvent<IBinanceEventOrderBook> evt)
         {
             if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k) && evt.Data.Symbol.ToUpper() == "BTCUSDT")
@@ -344,6 +347,7 @@ namespace BinanceHander
                     {
                         if (lastUpdateId + 1 != evt.Data.FirstUpdateId)
                         {
+                            lostCnt++;
                             logger.Info(
                                 $"--> data lost, lastupdateId:{lastUpdateId} current data first:{evt.Data.FirstUpdateId} last:{evt.Data.LastUpdateId}");
                         }
