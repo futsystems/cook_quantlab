@@ -343,13 +343,21 @@ namespace BinanceHander
                 
                 lock (orderBook)
                 {
-                    if (lastUpdateId.HasValue && evt.Data.FirstUpdateId > lastUpdateId)//确保lastUpdateId有值 然后 顺序
+                    if (lastUpdateId.HasValue)//确保lastUpdateId有值
                     {
-                        if (lastUpdateId + 1 != evt.Data.FirstUpdateId)
+                        //乱序排除
+                        if (evt.Data.FirstUpdateId > lastUpdateId)
                         {
-                            lostCnt++;
-                            logger.Info(
-                                $"--> data lost, lastupdateId:{lastUpdateId} current data first:{evt.Data.FirstUpdateId} last:{evt.Data.LastUpdateId}");
+                            if (lastUpdateId + 1 != evt.Data.FirstUpdateId)
+                            {
+                                lostCnt++;
+                                logger.Info(
+                                    $"--> data lost, lastupdateId:{lastUpdateId} current data first:{evt.Data.FirstUpdateId} last:{evt.Data.LastUpdateId}");
+                            }
+                            else
+                            {
+                                lastUpdateId = evt.Data.LastUpdateId;
+                            }
                         }
                     }
                     else
