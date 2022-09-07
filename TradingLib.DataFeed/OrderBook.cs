@@ -97,7 +97,7 @@ namespace TradingLib.DataFeed
         /// <summary>
         /// 记录depth update的更新Id
         /// </summary>
-        public long? LastDataUpdateId { get; set; }
+        public long LastDataUpdateId { get; set; }
 
         /// <summary>
         /// 数据缺失次数
