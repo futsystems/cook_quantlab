@@ -57,23 +57,53 @@ namespace TradingLib.DataFeed
         
         public bool Synced { get; set; }
 
-        public DateTime CacheTime { get; set; }
+        /// <summary>
+        /// 开始同步OrderBook时间
+        /// </summary>
+        public DateTime StartToSyncTime { get; set; }
+        
         public DateTime OrderBookUpdateTime { get; set; }
 
+        /// <summary>
+        /// 报价深度
+        /// </summary>
         public int Level { get; set; }
+        
+        /// <summary>
+        /// 行情源合约
+        /// </summary>
         public string FeedSymbol { get; set; }
+        
+        /// <summary>
+        /// 卖价列表
+        /// </summary>
         SortedList<decimal, OrderBookItem> AskItems { get; set; }
+        
+        /// <summary>
+        /// 买价列表
+        /// </summary>
         SortedList<decimal, OrderBookItem> BidItems { get; set; }
         
+        /// <summary>
+        /// 缓存的OrderBook数据
+        /// </summary>
         private List<IBinanceEventOrderBook> CachedOrderBook { get; set; }
         
+        /// <summary>
+        /// 当前OrderBook最后更新Id
+        /// </summary>
         public long LastUpdateId { get; set; }
-
-
+        
         /// <summary>
         /// 记录depth update的更新Id
         /// </summary>
         public long LastDataUpdateId { get; set; }
+
+        /// <summary>
+        /// 数据缺失次数
+        /// </summary>
+        public int DataLostCnt { get; set; }
+
 
         public OrderBook(string feedSymbol, int level=500)
         {
@@ -83,7 +113,7 @@ namespace TradingLib.DataFeed
             this.CachedOrderBook = new List<IBinanceEventOrderBook>();
             this.LastUpdateId = 0;
             this.Synced = false;
-            this.CacheTime = DateTime.UtcNow;
+            this.StartToSyncTime = DateTime.UtcNow;
             this.Level = level;
         }
         
@@ -161,7 +191,7 @@ namespace TradingLib.DataFeed
                     //数据衔接异常
                     logger.Error($"{this.FeedSymbol}  depth lost, lastUpdateId:{this.LastUpdateId} depth:{depth.FirstUpdateId} - {depth.LastUpdateId}");
                     //设置同步标志
-                    this.CacheTime = DateTime.UtcNow;
+                    this.StartToSyncTime = DateTime.UtcNow;
                     this.Synced = false;
                 }
             }

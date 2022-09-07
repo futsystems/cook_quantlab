@@ -68,11 +68,10 @@ namespace BinanceHander
                         k.TickContent3 = item.Value.LastUpdateId.ToString();
                         k.UpdateType = "OS";
                         this.NewTick(k);
+                        logger.Info($"depth update of {item.Value.FeedSymbol} lost data detected cnt:{item.Value.DataLostCnt}");
                     }
                 }
             }
-
-            logger.Info($"depth update lost data detected cnt:{lostCnt}");
         }
 
 
@@ -295,14 +294,14 @@ namespace BinanceHander
                     foreach (var item in feedSym2Orderbook.Values.Where(e=>e.Synced == false).ToList())
                     {
                         //延迟5秒查询depth snapshot，可以获得updateId包含在实时数据中
-                        if (DateTime.UtcNow.Subtract(item.CacheTime).TotalSeconds > 5)
+                        if (DateTime.UtcNow.Subtract(item.StartToSyncTime).TotalSeconds > 5)
                         {
-                            logger.Info($"sync order book depth data for:{item.FeedSymbol}");
                             var result = this.GetOrderBookDepth(item.FeedSymbol);
-                            logger.Info($"snapshot last update id:{result.LastUpdateId}");
+                            logger.Info($"sync order book depth data for:{item.FeedSymbol}, snapshot last update id:{result.LastUpdateId}");
                             
                             lock (item)
                             {
+                                //使用查询到的快照数据以及缓存的OrderBook数据恢复本地OrderBook数据
                                 item.UseOrderBookSnapshot(result);
                                 item.UseCachedOrderBookUpdate();
                             }
@@ -311,7 +310,7 @@ namespace BinanceHander
                 }
                 catch (Exception ex)
                 {
-
+                    logger.Error(ex, "sync orderbook error:");
                 }
 
                 // clear current flag signal
@@ -326,42 +325,21 @@ namespace BinanceHander
 
         private ConcurrentDictionary<string, OrderBook> feedSym2Orderbook =
             new ConcurrentDictionary<string, OrderBook>();
-
-
-        private long? lastUpdateId = null;
-        private int lostCnt = 0;
+        
         void HandleEvent(DataEvent<IBinanceEventOrderBook> evt)
         {
-            if (feedsym2tickSnapshotMap.TryGetValue(evt.Data.Symbol.ToUpper(), out var k) && evt.Data.Symbol.ToUpper() == "BTCUSDT")
+            var feedSymbolUpper = evt.Data.Symbol.ToUpper();
+            if (feedsym2tickSnapshotMap.TryGetValue(feedSymbolUpper, out var k))
             {
                 //logger.Info($"depth order update id:{evt.Data.LastUpdateId}");
-                if (!feedSym2Orderbook.TryGetValue(evt.Data.Symbol.ToUpper(), out var orderBook))
+                if (!feedSym2Orderbook.TryGetValue(feedSymbolUpper, out var orderBook))
                 {
-                    orderBook = new OrderBook(evt.Data.Symbol.ToUpper());
-                    feedSym2Orderbook.TryAdd(evt.Data.Symbol.ToUpper(), orderBook);//在其他线程内执行数据同步
+                    orderBook = new OrderBook(feedSymbolUpper);
+                    feedSym2Orderbook.TryAdd(feedSymbolUpper, orderBook);//在其他线程内执行数据同步
                 }
                 
                 lock (orderBook)
                 {
-                    if (lastUpdateId.HasValue)//确保lastUpdateId有值
-                    {
-                        //乱序排除
-                        if (evt.Data.FirstUpdateId > lastUpdateId)
-                        {
-                            if (lastUpdateId + 1 != evt.Data.FirstUpdateId)
-                            {
-                                lostCnt++;
-                                logger.Info(
-                                    $"--> data lost, lastupdateId:{lastUpdateId} current data first:{evt.Data.FirstUpdateId} last:{evt.Data.LastUpdateId}");
-                            }
-                            lastUpdateId = evt.Data.LastUpdateId;
-                        }
-                    }
-                    else
-                    {
-                        lastUpdateId = evt.Data.LastUpdateId;
-                    }
-                    
                     if (orderBook.Synced == true)
                     {
                        orderBook.UpdateOrderBook(evt.Data);
@@ -375,6 +353,14 @@ namespace BinanceHander
                     {
                         if (evt.Data.FirstUpdateId.Value > orderBook.LastDataUpdateId)
                         {
+                            //数据跳跃(缺失)
+                            if (orderBook.LastDataUpdateId + 1 != evt.Data.FirstUpdateId)
+                            {
+                                orderBook.DataLostCnt++;
+                                logger.Info(
+                                    $"--> data lost, lastupdateId:{orderBook.LastDataUpdateId} current data first:{evt.Data.FirstUpdateId} last:{evt.Data.LastUpdateId}");
+                            }
+                            
                             orderBook.LastDataUpdateId = evt.Data.LastUpdateId;//将depth的最近更新Id记录到orderBook 用于排除数据源有乱序数据
                             //发送depth tick
                             k.HostTime = DateTime.UtcNow.ToTimeStamp();
@@ -388,6 +374,7 @@ namespace BinanceHander
                         }
                         else
                         {
+                            //当前更新的数据是旧的数据
                             logger.Info(
                                 $"got error detph update, {evt.Data.FirstUpdateId} - {evt.Data.LastUpdateId} order book last data update id: {orderBook.LastDataUpdateId}");
                         }
@@ -406,10 +393,7 @@ namespace BinanceHander
                         this.NewTick(k);
                         
                     }
-                    
                 }
-                
-                
             }
         }
 
