@@ -354,7 +354,7 @@ namespace BinanceHander
                         if (evt.Data.FirstUpdateId.Value > orderBook.LastDataUpdateId)
                         {
                             //数据跳跃(缺失)
-                            if (orderBook.LastDataUpdateId + 1 != evt.Data.FirstUpdateId)
+                            if (orderBook.LastDataUpdateId.HasValue && orderBook.LastDataUpdateId + 1 != evt.Data.FirstUpdateId)
                             {
                                 orderBook.DataLostCnt++;
                                 logger.Info(
