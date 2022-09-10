@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Text;
+using System.Threading.Tasks;
 using TradingLib.API;
 using TradingLib.Common;
 using NetMQ;
@@ -14,16 +15,18 @@ namespace TradingLib.DataFeed
 {
     public class TickPot
     {
+        NLog.ILogger logger = NLog.LogManager.GetCurrentClassLogger();
+        
         private const string HEART_BEAT = "TICKHEARTBEAT";
         const int TICK_HEART_BEAT = 1;
         const int TICK_BUFFER_SIZE = 10000;
 
         private Channel<string> channel = null;
-
-        ManualResetEvent _bufferwaiting = new ManualResetEvent(false);
-
-        NLog.ILogger logger = NLog.LogManager.GetCurrentClassLogger();
-
+        System.Timers.Timer timer;
+        
+        Thread _bufferSendThread = null;
+        bool _bufferGo = false;
+        
         string _address = "127.0.0.1";
         int _port = 6666;
 
@@ -53,7 +56,7 @@ namespace TradingLib.DataFeed
                 _bufferSendThread.Start();
             }
 
-            StartHeartBeat();
+            StartTimer();
         }
 
         /// <summary>
@@ -84,39 +87,18 @@ namespace TradingLib.DataFeed
         }
 
 
-        //RingBuffer<string> tickbuffer = new RingBuffer<string>(TICK_BUFFER_SIZE);
-        // public void NewTick(Tick k)
-        // {
-        //     //logger.Info("send tick to buffer");
-        //     string str_tosend = k.Symbol +"^" + TickImpl.Serialize(k);
-        //     tickbuffer.Write(str_tosend);
-        //     newdata();
-        // }
-
-        public async void NewTickStr(string tickStr)
+        public void NewTickStr(string tickStr)
         {
-            await channel.Writer.WriteAsync(tickStr);
-            // tickbuffer.Write(tickStr);
-            // newdata();
+            channel.Writer.WriteAsync(tickStr).GetAwaiter().GetResult();
         }
-
-
         
-        async void NewHeartBeat()
+        void NewHeartBeat()
         {
-            await channel.Writer.WriteAsync(HEART_BEAT);
-            //string str_tosend = "TICKHEARTBEAT";
-            //tickbuffer.Write(str_tosend);
-            //newdata();
+            channel.Writer.WriteAsync(HEART_BEAT).GetAwaiter().GetResult();
         }
-
-
-        Thread _bufferSendThread = null;
-        bool _bufferGo = false;
 
         async void BufferProcess()
         {
-
             using (var pub = new PublisherSocket())
             {
                 pub.Options.SendHighWatermark = 10000;
@@ -124,91 +106,31 @@ namespace TradingLib.DataFeed
                 pub.Connect(address);
                 logger.Info(string.Format("TickPubSrv Start Pub Socket:{0}", address));
 
-                while (await channel.Reader.WaitToReadAsync())
+                while (await channel.Reader.WaitToReadAsync() && _bufferGo)
                 {
                     if (channel.Reader.TryRead(out var message))
                     {
+                        //logger.Info($"msg to send:{message}");
                         pub.SendFrame(System.Text.Encoding.UTF8.GetBytes(message), false);
                     }
                 }
-                // while (_bufferGo)
-                // {
-                //     try
-                //     {
-                //
-                //         while (tickbuffer.hasItems)
-                //         {
-                //             string tosend = tickbuffer.Read();
-                //             if (!string.IsNullOrEmpty(tosend))
-                //             {
-                //                 pub.SendFrame(System.Text.Encoding.UTF8.GetBytes(tosend), false);
-                //
-                //             }
-                //         }
-                //     }
-                //     catch (Exception ex)
-                //     {
-                //
-                //     }
-                //
-                //     // clear current flag signal
-                //     _bufferwaiting.Reset();
-                //
-                //     // wait for a new signal to continue reading
-                //     _bufferwaiting.WaitOne(10);
-                // }
-            }
-
-        }
-
-        void StartHeartBeat()
-        {
-            if (_hbgo)
-            {
-                logger.Info("HeartBeat Thread already started");
-                return;
-            }
-            _hbgo = true;
-            _hbthread = new Thread(HeartBeatProcess);
-            _hbthread.IsBackground = true;
-            _hbthread.Start();
-        }
-
-        void StopHeartBeat()
-        {
-            if (!_hbgo)
-            {
-                logger.Info("HeartBeat Thread not started");
-                return;
-            }
-            Util.WaitThreadStop(_hbthread);
-        }
-
-        Thread _hbthread = null;
-        bool _hbgo = false;
-        DateTime _lastHeartBeat = DateTime.Now;
-        void HeartBeatProcess()
-        {
-            while (_hbgo)
-            {
-                DateTime now = DateTime.Now;
-                if (now.Subtract(_lastHeartBeat).TotalSeconds > TICK_HEART_BEAT)
-                {
-                    NewHeartBeat();
-                    _lastHeartBeat = now;
-                }
-                Util.sleep(200);
             }
         }
-
-
-        private void newdata()
+        
+        void StartTimer()
         {
-            if ((_bufferSendThread != null) && (_bufferSendThread.ThreadState == System.Threading.ThreadState.WaitSleepJoin))
-            {
-                _bufferwaiting.Set();
-            }
-
+            int interval = 1000 * TICK_HEART_BEAT;//多少时间发送一次心跳
+            timer = new System.Timers.Timer(interval);
+            timer.AutoReset = true;
+            timer.Enabled = true;
+            timer.Elapsed += new System.Timers.ElapsedEventHandler(IntervalTask);
+            timer.Start();
+        }
+        
+        private void IntervalTask(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            logger.Debug("Send Hartbeat");
+            NewHeartBeat();
         }
     }
 }
