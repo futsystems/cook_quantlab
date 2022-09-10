@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Text;
 using TradingLib.API;
 using TradingLib.Common;
@@ -13,8 +14,12 @@ namespace TradingLib.DataFeed
 {
     public class TickPot
     {
+        private const string HEART_BEAT = "TICKHEARTBEAT";
         const int TICK_HEART_BEAT = 1;
         const int TICK_BUFFER_SIZE = 10000;
+
+        private Channel<string> channel = null;
+
         ManualResetEvent _bufferwaiting = new ManualResetEvent(false);
 
         NLog.ILogger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -27,7 +32,10 @@ namespace TradingLib.DataFeed
         {
             _address = address;
             _port = port;
+            channel = Channel.CreateUnbounded<string>();
         }
+        
+        
         /// <summary>
         /// 启动
         /// </summary>
@@ -76,34 +84,37 @@ namespace TradingLib.DataFeed
         }
 
 
-        RingBuffer<string> tickbuffer = new RingBuffer<string>(TICK_BUFFER_SIZE);
-        public void NewTick(Tick k)
+        //RingBuffer<string> tickbuffer = new RingBuffer<string>(TICK_BUFFER_SIZE);
+        // public void NewTick(Tick k)
+        // {
+        //     //logger.Info("send tick to buffer");
+        //     string str_tosend = k.Symbol +"^" + TickImpl.Serialize(k);
+        //     tickbuffer.Write(str_tosend);
+        //     newdata();
+        // }
+
+        public async void NewTickStr(string tickStr)
         {
-            //logger.Info("send tick to buffer");
-            string str_tosend = k.Symbol +"^" + TickImpl.Serialize(k);
-            tickbuffer.Write(str_tosend);
-            newdata();
+            await channel.Writer.WriteAsync(tickStr);
+            // tickbuffer.Write(tickStr);
+            // newdata();
         }
 
-        public void NewTickStr(string tickStr)
-        {
-            tickbuffer.Write(tickStr);
-            newdata();
-        }
 
-
-        void NewHeartBeat()
+        
+        async void NewHeartBeat()
         {
-            string str_tosend = "TICKHEARTBEAT";
-            tickbuffer.Write(str_tosend);
-            newdata();
+            await channel.Writer.WriteAsync(HEART_BEAT);
+            //string str_tosend = "TICKHEARTBEAT";
+            //tickbuffer.Write(str_tosend);
+            //newdata();
         }
 
 
         Thread _bufferSendThread = null;
         bool _bufferGo = false;
 
-        void BufferProcess()
+        async void BufferProcess()
         {
 
             using (var pub = new PublisherSocket())
@@ -112,32 +123,40 @@ namespace TradingLib.DataFeed
                 string address = string.Format("tcp://{0}:{1}", _address, _port);
                 pub.Connect(address);
                 logger.Info(string.Format("TickPubSrv Start Pub Socket:{0}", address));
-                while (_bufferGo)
+
+                while (await channel.Reader.WaitToReadAsync())
                 {
-                    try
+                    if (channel.Reader.TryRead(out var message))
                     {
-
-                        while (tickbuffer.hasItems)
-                        {
-                            string tosend = tickbuffer.Read();
-                            if (!string.IsNullOrEmpty(tosend))
-                            {
-                                pub.SendFrame(System.Text.Encoding.UTF8.GetBytes(tosend), false);
-
-                            }
-                        }
+                        pub.SendFrame(System.Text.Encoding.UTF8.GetBytes(message), false);
                     }
-                    catch (Exception ex)
-                    {
-
-                    }
-
-                    // clear current flag signal
-                    _bufferwaiting.Reset();
-
-                    // wait for a new signal to continue reading
-                    _bufferwaiting.WaitOne(10);
                 }
+                // while (_bufferGo)
+                // {
+                //     try
+                //     {
+                //
+                //         while (tickbuffer.hasItems)
+                //         {
+                //             string tosend = tickbuffer.Read();
+                //             if (!string.IsNullOrEmpty(tosend))
+                //             {
+                //                 pub.SendFrame(System.Text.Encoding.UTF8.GetBytes(tosend), false);
+                //
+                //             }
+                //         }
+                //     }
+                //     catch (Exception ex)
+                //     {
+                //
+                //     }
+                //
+                //     // clear current flag signal
+                //     _bufferwaiting.Reset();
+                //
+                //     // wait for a new signal to continue reading
+                //     _bufferwaiting.WaitOne(10);
+                // }
             }
 
         }
