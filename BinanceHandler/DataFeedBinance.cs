@@ -30,15 +30,15 @@ namespace BinanceHander
     {
         private const string EXCHANGE = "BINANCE";
         private const int TICK_SNAPSHOT_INTERVAL = 1;
-        
 
-        public DataFeedBinance(TickPot tickpot, string exchange, string address, int qryport)
+
+        private int level = 500;
+        public DataFeedBinance(TickPot tickpot, string exchange, string address, int qryport, int level)
             : base(tickpot, exchange, address, qryport)
-        { 
-        
+        {
+
+            this.level = level;
             InitTimer();
-            timer.Start();
-            
         }
 
         System.Timers.Timer timer;
@@ -49,6 +49,7 @@ namespace BinanceHander
             timer.AutoReset = true;
             timer.Enabled = true;
             timer.Elapsed += new System.Timers.ElapsedEventHandler(SendTickSnapshot);
+            timer.Start();
         }
         
 
@@ -335,7 +336,7 @@ namespace BinanceHander
                 //logger.Info($"depth order update id:{evt.Data.LastUpdateId}");
                 if (!feedSym2Orderbook.TryGetValue(feedSymbolUpper, out var orderBook))
                 {
-                    orderBook = new OrderBook(feedSymbolUpper);
+                    orderBook = new OrderBook(feedSymbolUpper,this.level);
                     feedSym2Orderbook.TryAdd(feedSymbolUpper, orderBook);//在其他线程内执行数据同步
                 }
                 

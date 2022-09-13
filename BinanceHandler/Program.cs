@@ -28,7 +28,7 @@ namespace BinanceHander
             TickPot tickpot = new TickPot(config.Host, config.DataSubPort);
             tickpot.Start();
 
-            DataFeedBase datafeed = new DataFeedBinance(tickpot, config.ExchangeName, config.Host, config.MgrQryPort);
+            DataFeedBase datafeed = new DataFeedBinance(tickpot, config.ExchangeName, config.Host, config.MgrQryPort, config.Level);
             datafeed.Start();
 
             TickPortMgr tickpotmgr = new TickPortMgr(config.Host, config.MgrPubPort, config.ExchangeName);
@@ -54,6 +54,9 @@ namespace BinanceHander
             public int MgrQryPort { get; set; }
 
             public int MgrPubPort { get; set; }
+
+
+            public int Level { get; set; }
         }
     }
 }
