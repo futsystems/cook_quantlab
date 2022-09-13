@@ -29,22 +29,28 @@ namespace BinanceHander
     public class DataFeedBinance:DataFeedBase
     {
         private const string EXCHANGE = "BINANCE";
-        private const int TICK_SNAPSHOT_INTERVAL = 1;
-
-
+        
         private int level = 500;
-        public DataFeedBinance(TickPot tickpot, string exchange, string address, int qryport, int level)
+        private int snapshotInterval = 1;
+        public DataFeedBinance(TickPot tickpot, 
+            string exchange,
+            string address, 
+            int qryport, 
+            int level,
+            int snapshotInterval)
             : base(tickpot, exchange, address, qryport)
         {
 
             this.level = level;
+            this.snapshotInterval = snapshotInterval;
             InitTimer();
         }
 
         System.Timers.Timer timer;
+        
         void InitTimer()
         {
-            int interval = 1000 * 60 * TICK_SNAPSHOT_INTERVAL;//5分钟发送一次快照
+            int interval = 1000 * 60 * this.snapshotInterval;
             timer = new System.Timers.Timer(interval);
             timer.AutoReset = true;
             timer.Enabled = true;
