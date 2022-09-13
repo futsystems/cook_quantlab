@@ -111,7 +111,7 @@ namespace TradingLib.DataFeed
                     if (channel.Reader.TryRead(out var message))
                     {
                         //logger.Info($"msg to send:{message}");
-                        //pub.SendFrame(System.Text.Encoding.UTF8.GetBytes(message), false);
+                        pub.SendFrame(System.Text.Encoding.UTF8.GetBytes(message), false);
                     }
                 }
             }
