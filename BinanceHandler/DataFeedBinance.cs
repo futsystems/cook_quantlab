@@ -57,7 +57,7 @@ namespace BinanceHander
             timer.Elapsed += new System.Timers.ElapsedEventHandler(SendTickSnapshot);
             timer.Start();
         }
-        
+
 
 
         private void SendTickSnapshot(object sender, System.Timers.ElapsedEventArgs e)
@@ -67,16 +67,46 @@ namespace BinanceHander
             {
                 if (feedsym2tickSnapshotMap.TryGetValue(item.Key, out var k))
                 {
-                    lock (item.Value)
+                    //发送本地快照
+                    // lock (item.Value)
+                    // {
+                    //     k.HostTime = DateTime.UtcNow.ToTimeStamp();
+                    //     k.TickTime = k.HostTime;
+                    //     k.TickContent1 = item.Value.SerializeAsk();
+                    //     k.TickContent2 = item.Value.SerializeBid();
+                    //     k.TickContent3 = item.Value.LastUpdateId.ToString();
+                    //     k.UpdateType = "OS";
+                    //     this.NewTick(k);
+                    //
+                    // }
+
+                    try
                     {
+                        //从binance查询快照获取数据并返回
+                        var tmpOrderBook = new OrderBook(item.Value.FeedSymbol, this.level);
+                        var result = this.GetOrderBookDepth(item.Value.FeedSymbol);
+                        logger.Info(
+                            $"query order book depth data for:{item.Value.FeedSymbol}, snapshot last update id:{result.LastUpdateId}");
+
+
+                        //使用查询到的快照数据以及缓存的OrderBook数据恢复本地OrderBook数据
+                        tmpOrderBook.UseOrderBookSnapshot(result);
+                        tmpOrderBook.UseCachedOrderBookUpdate();
+
                         k.HostTime = DateTime.UtcNow.ToTimeStamp();
                         k.TickTime = k.HostTime;
-                        k.TickContent1 = item.Value.SerializeAsk();
-                        k.TickContent2 = item.Value.SerializeBid();
-                        k.TickContent3 = item.Value.LastUpdateId.ToString();
+                        k.TickContent1 = tmpOrderBook.SerializeAsk();
+                        k.TickContent2 = tmpOrderBook.SerializeBid();
+                        k.TickContent3 = tmpOrderBook.LastUpdateId.ToString();
                         k.UpdateType = "OS";
                         this.NewTick(k);
-                        logger.Info($"depth update of {item.Value.FeedSymbol} lost data detected cnt:{item.Value.DataLostCnt}");
+
+                        logger.Info(
+                            $"depth update of {item.Value.FeedSymbol} lost data detected cnt:{item.Value.DataLostCnt}");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Error(ex,"send snapshot data eror:");
                     }
                 }
             }
